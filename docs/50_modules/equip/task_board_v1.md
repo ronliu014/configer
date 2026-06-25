@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 10：item 与 language 维护 |
+| 当前阶段 | 阶段 11：只读关联抽屉与存在性校验 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `10e2823 Add equip edit workflow` |
-| 下一步 | 实现配套 item 和 language 编辑能力 |
+| 最近完成阶段提交 | `f074a70 Add item and language editing` |
+| 下一步 | 实现只读关联抽屉和关联主键存在性校验 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -48,7 +48,7 @@
 | 7 | 配置中心外壳与导航 | `Done` | `24b1c0e Add configuration center shell` | `npm test -- tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现配置中心外壳、导航分组、顶部加载状态和已加载后进入装备列表外壳；`xlsx` audit 风险仍存在 |
 | 8 | 装备列表 | `Done` | `22dbbc7 Add equip list page` | `npm test -- tests/modules/equip/equipListService.test.ts`、`npm test -- tests/modules/equip/EquipListPage.test.tsx`、`npm test -- tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现装备列表展示、搜索、筛选、分页和品质标签；`xlsx` audit 风险仍存在 |
 | 9 | 装备新增、编辑、删除 | `Done` | `10e2823 Add equip edit workflow` | `npm test -- tests/app/App.test.tsx`、`npm test -- tests/modules/equip/equipListService.test.ts tests/modules/equip/EquipListPage.test.tsx tests/modules/equip/EquipEditPage.test.tsx tests/modules/equip/equipEditService.test.ts tests/modules/equip/equipEncodeRules.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现生成预览、新增撞 ID 拦截、编辑更新原行和删除确认；`xlsx` audit 风险仍存在 |
-| 10 | item 与 language 维护 | `Not Started` | `Add item and language editing` | 未执行 | 支持配套 item 和文案编辑 |
+| 10 | item 与 language 维护 | `Done` | `f074a70 Add item and language editing` | `npm test -- tests/modules/item/itemService.test.ts tests/modules/item/ItemPage.test.tsx tests/modules/language/languageService.test.ts tests/modules/language/LanguagePage.test.tsx tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现配套 item 互指维护和 language 文案增改查；`xlsx` audit 风险仍存在 |
 | 11 | 只读关联抽屉与存在性校验 | `Not Started` | `Add read-only relation drawer` | 未执行 | 关联表只读，不补建 |
 | 12 | diff、变更预览和 changelog | `Not Started` | `Add diff and changelog generation` | 未执行 | 预览和 changelog 使用同一份 diff |
 | 13 | target 输出与备份 | `Not Started` | `Add safe target output` | 未执行 | v1.0 只输出 `equip`、`item`、`language` |
@@ -471,6 +471,51 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 10：item 与 language 维护。
+
+### 阶段 10：item 与 language 维护
+
+- 状态：Done
+- 提交：`f074a70 Add item and language editing`
+- 时间：2026-06-25 19:38
+- 变更范围：
+  - `src/app/App.tsx`
+  - `src/app/sessionState.ts`
+  - `src/modules/equip/pages/EquipEditPage.tsx`
+  - `src/modules/item/pages/ItemPage.tsx`
+  - `src/modules/item/services/itemService.ts`
+  - `src/modules/language/pages/LanguagePage.tsx`
+  - `src/modules/language/services/languageService.ts`
+  - `src/shared/components/Sidebar.tsx`
+  - `src/shared/styles/app.css`
+  - `tests/app/App.test.tsx`
+  - `tests/modules/equip/EquipEditPage.test.tsx`
+  - `tests/modules/item/ItemPage.test.tsx`
+  - `tests/modules/item/itemService.test.ts`
+  - `tests/modules/language/LanguagePage.test.tsx`
+  - `tests/modules/language/languageService.test.ts`
+- 验证：
+  - `npm test -- tests/modules/item/itemService.test.ts tests/modules/item/ItemPage.test.tsx tests/modules/language/languageService.test.ts tests/modules/language/LanguagePage.test.tsx tests/app/App.test.tsx`：通过，5 个测试文件、23 个 Phase 10 定向测试通过；实现前 service/page/App 集成测试分别先因缺少模块或导航接线失败。
+  - `npm test -- tests/modules/equip/EquipEditPage.test.tsx tests/app/App.test.tsx tests/modules/item/itemService.test.ts tests/modules/item/ItemPage.test.tsx tests/modules/language/languageService.test.ts tests/modules/language/LanguagePage.test.tsx`：通过，6 个测试文件、26 个测试通过，覆盖装备编辑页中文文案优先显示。
+  - `npm test`：通过，18 个测试文件、77 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功；曾发现 `TableCellValue` 的 boolean 可能渗入 item quality，已在 App 边界统一转文本后通过。
+  - `git diff --check` / `git diff --cached --check`：通过，无空白错误；Git 仅提示工作区文件下次接触时 LF 将按本机设置替换为 CRLF。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 新增 `itemService`，可按装备 ID 查找非绑 item 与绑定 item，生成绑定 ID `"8" + equipId`，检查 `BindItemId` / `UnBindItemId` 互指关系。
+  - 支持新增缺失的非绑/绑定 item 配对，并更新已有配对的 `nameKey` 与品质，不新增重复行。
+  - 互指异常时返回明确原因，并阻止覆盖无关 item 数据。
+  - 新增 `languageService`，支持按 Key 查中文文案、缺失状态展示、增改 `language` 行，并拒绝空 Key。
+  - 新增 `ItemPage` 与 `LanguagePage`，可从公共配置导航进入并编辑当前装备的配套 item 和文案。
+  - 装备编辑页生成预览优先显示已配置中文文案，同时保留 language Key；未配置时显示未配状态和 Key。
+  - App 已维护 `itemRows`、`languageRows` 本地内存状态，公共配置保存后内存行会更新。
+- 遗留风险：
+  - Phase 10 让 item / language 变更进入内存行，但正式 diff 记录、变更预览和 changelog 仍在 Phase 12 落地。
+  - 当前 App 仍使用 `SessionState` 测试行和本地 state，尚未把真实目录加载后的 `ConfigSession.tableStore` 作为统一编辑会话。
+  - item schema 仍是 v1.0 最小字段集合，真实 item 表的脚本、图标、背包标签、堆叠、服务器类型等字段尚未纳入生成或编辑。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 11：只读关联抽屉与存在性校验。
 
 ## 恢复工作指引
 
