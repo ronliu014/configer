@@ -28,7 +28,7 @@
 |---|---|
 | 当前阶段 | 阶段 0：脚手架与开发命令 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `7d8f2c0 Standardize equip source target documentation` |
+| 最近完成阶段提交 | `09e2688 Standardize equip source target documentation` |
 | 下一步 | 创建 Vite + React + TypeScript 脚手架，并建立 `npm run dev`、`npm run build`、`npm test` |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
@@ -103,7 +103,7 @@
 ### 规划调整：source / target 输出契约与 equip 标准目录
 
 - 状态：Done
-- 提交：`7d8f2c0 Standardize equip source target documentation`
+- 提交：`09e2688 Standardize equip source target documentation`
 - 时间：2026-06-25
 - 变更范围：
   - `docs/40_game_config/equip/`
