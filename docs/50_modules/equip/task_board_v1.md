@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 0：脚手架与开发命令 |
+| 当前阶段 | 阶段 1：Excel 输出契约技术验证 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `09e2688 Standardize equip source target documentation` |
-| 下一步 | 创建 Vite + React + TypeScript 脚手架，并建立 `npm run dev`、`npm run build`、`npm test` |
+| 最近完成阶段提交 | `5043b37 Scaffold local web app` |
+| 下一步 | 验证 SheetJS 是否满足 source 只读、target 镜像输出、4 行表头和 generated 静态值输出契约 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -38,7 +38,7 @@
 
 | 阶段 | 名称 | 状态 | 目标提交 | 验证证据 | 备注 |
 |---|---|---|---|---|---|
-| 0 | 脚手架与开发命令 | `Not Started` | `Scaffold local web app` | 未执行 | 先建立 Vite + React + TypeScript、Vitest、基础目录 |
+| 0 | 脚手架与开发命令 | `Done` | `5043b37 Scaffold local web app` | `npm test`、`npm run build`、`npm run dev -- --host 127.0.0.1 --port 5173 --clearScreen false` | 已建立 Vite + React + TypeScript、Vitest、基础目录 |
 | 1 | Excel 输出契约技术验证 | `Not Started` | `Verify Excel target output contract` | 未执行 | 必须验证 source 只读、target 镜像路径、4 行表头、generated 静态值；失败则先调整技术方案 |
 | 2 | 核心类型与 4 行表头解析 | `Not Started` | `Add Excel header parser` | 未执行 | 解析 4 行表头，记录 `srcCol` / `srcName` |
 | 3 | schema registry 与模块注册 | `Not Started` | `Add schema and module registry` | 未执行 | 注册 `equip`、`item`、`language`，关联表只读 |
@@ -127,6 +127,46 @@
   - 标准化字段字典仍需在阶段 6 结合真实源表进一步细化到准确 `srcCol`。
 - 下一步：
   - 阶段 0：脚手架与开发命令。
+
+### 阶段 0：脚手架与开发命令
+
+- 状态：Done
+- 提交：`5043b37 Scaffold local web app`
+- 时间：2026-06-25 16:33
+- 变更范围：
+  - `package.json`
+  - `package-lock.json`
+  - `index.html`
+  - `vite.config.ts`
+  - `vitest.config.ts`
+  - `tsconfig.json`
+  - `src/app/`
+  - `src/core/`
+  - `src/shared/`
+  - `src/modules/equip/`
+  - `src/modules/item/`
+  - `src/modules/language/`
+  - `tests/app/`
+  - `README.md`
+  - `.gitignore`
+- 验证：
+  - `npm test -- tests/app/App.test.tsx`：通过，1 个 App shell smoke test 通过。
+  - `npm test`：通过，1 个测试文件、1 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `npm run dev -- --host 127.0.0.1 --port 5173 --clearScreen false`：启动成功；Vite 输出 `ready` 与本地地址，因开发服务器为常驻进程，验证命令在 10 秒后由工具超时停止。
+  - `git diff --cached --check`：通过，无空白错误。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+- 结果：
+  - 创建了本地 Web 工程脚手架，使用 Vite、React、TypeScript 和 Vitest。
+  - 建立了 `npm run dev`、`npm run build`、`npm test`。
+  - 建立了 `src/app/`、`src/core/`、`src/shared/`、`src/modules/equip/`、`src/modules/item/`、`src/modules/language/` 和 `tests/` 基础目录。
+  - 添加了最小配置中心页面，展示业务配置与公共配置分组；未加载 sourceRoot / targetRoot 前禁用业务入口。
+  - 页面不读取仓库内 `source/` 固定路径。
+- 遗留风险：
+  - 阶段 0 未实现 Excel 读取、输出、备份或 changelog；这些能力必须从阶段 1 的输出契约技术验证开始。
+  - 尚未验证 SheetJS 是否满足 target 输出契约。
+- 下一步：
+  - 阶段 1：Excel 输出契约技术验证。
 
 ## 恢复工作指引
 
