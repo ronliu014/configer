@@ -24,7 +24,8 @@ docs/
 3. 进入技术设计前，读 [项目目录设计](20_architecture/project_directory_design.md)、[技术方案](20_architecture/technical_design.md)、[模块架构](20_architecture/module_architecture.md) 和 [数据生命周期](20_architecture/data_lifecycle.md)。
 4. 写任何新文档、代码或测试前，读 [文档规范](30_development/documentation_standard.md)、[代码规范](30_development/coding_standard.md)、[测试规范](30_development/testing_standard.md) 和 [交付检查清单](30_development/delivery_checklist.md)。
 5. 做装备 MVP 前读 [equip 工具模块入口](50_modules/equip/README.md)，再进入 [equip 配置说明](40_game_config/equip/README.md) 的详细资料。
-6. 改 Excel 读写、对账、回写前必须读 `docs/40_game_config/equip/12_装备配置工具设计规范.md` 与 `docs/40_game_config/equip/15_工具开发实施指南.md`。
+6. 改 Excel 读写、对账、回写前必须读 `docs/40_game_config/equip/12_装备配置工具设计规范.md`、`docs/40_game_config/equip/15_工具开发实施指南.md` 与 [Excel 配表协议](90_reference/excel_table_protocol.md)。
+7. 处理源表路径、样例表或外部提交流程时，读 [源表样例清单](90_reference/source_tables.md) 和 [外部流程参考](90_reference/external_workflow.md)。
 
 ## 权威来源规则
 
