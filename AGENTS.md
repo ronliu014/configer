@@ -5,8 +5,8 @@
 `configer` automates and validates DD game design configuration tables. The MVP centers on equipment (`equip`) while keeping boundaries clear for future domains such as `item`, `role`, skills, drops, and activities.
 
 - `docs/README.md` is the document entry point; follow it before writing product, architecture, or module docs.
-- `docs/equip/doc/` contains equip analysis, schema notes, ER diagrams, workflow, implementation guidance, and the UI demo.
-- `docs/equip/doc/demo/装备配置工具.html` is an interaction and visual reference only; do not copy its mock logic as production rules.
+- `docs/40_game_config/` contains game configuration analysis by module; `equip/` is the current MVP knowledge base.
+- `docs/40_game_config/equip/demo/装备配置工具.html` is an interaction and visual reference only; do not copy its mock logic as production rules.
 - `source/table/default_ios/` stores real Excel tables grouped by domain: `equip/`, `item/`, and `language/`.
 - Add future code by module, for example `src/modules/equip/`, `src/modules/item/`, with shared logic under `src/core/` or `src/shared/`.
 

@@ -13,13 +13,13 @@
 
 ## 必读顺序
 
-1. `docs/equip/doc/15_工具开发实施指南.md`：开发蓝图、版本边界、红线。
-2. `docs/equip/doc/12_装备配置工具设计规范.md`：页面、状态、加载、回写、变更记录。
-3. `docs/equip/doc/13_字段配置标准（表与字段Schema）.md`：schema、字段来源、关联下钻。
-4. `docs/equip/doc/04_ID编码规则速查.md`：ID 生成和对账规则。
-5. `docs/equip/doc/05_字段清单表.md` 与 `docs/equip/doc/09_关联表字段清单.md`：字段事实依据。
-6. `docs/equip/doc/10_装备配置流程.md`：策划配置流程。
-7. `docs/equip/doc/14_工具化设计评审意见.md`：已确认的风险和修正意见。
+1. `docs/40_game_config/equip/15_工具开发实施指南.md`：开发蓝图、版本边界、红线。
+2. `docs/40_game_config/equip/12_装备配置工具设计规范.md`：页面、状态、加载、回写、变更记录。
+3. `docs/40_game_config/equip/13_字段配置标准（表与字段Schema）.md`：schema、字段来源、关联下钻。
+4. `docs/40_game_config/equip/04_ID编码规则速查.md`：ID 生成和对账规则。
+5. `docs/40_game_config/equip/05_字段清单表.md` 与 `docs/40_game_config/equip/09_关联表字段清单.md`：字段事实依据。
+6. `docs/40_game_config/equip/10_装备配置流程.md`：策划配置流程。
+7. `docs/40_game_config/equip/14_工具化设计评审意见.md`：已确认的风险和修正意见。
 
 ## 开发红线
 

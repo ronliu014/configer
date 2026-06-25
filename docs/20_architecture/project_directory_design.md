@@ -22,9 +22,13 @@ configer/
     10_product/
     20_architecture/
     30_development/
-    40_modules/
+    40_game_config/
+      equip/
+      item/
+      role/
+      drop/
+    50_modules/
     90_reference/
-    equip/doc/
   source/
     table/default_ios/
       equip/
@@ -47,7 +51,7 @@ configer/
 
 ## 目录职责
 
-`docs/` 保存所有设计和规范。`docs/equip/doc/` 是现有装备领域资料库，暂不搬迁；新模块入口统一放在 `docs/40_modules/`。
+`docs/` 保存所有设计和规范。`docs/40_game_config/` 保存游戏配置说明、配表字段、公式规则、关联关系和配置流程；`docs/50_modules/` 保存工具实现模块入口和开发说明。
 
 `source/` 保存真实或接近真实的输入配表样例。不要把临时导出、备份、changelog、构建产物放入此目录。
 
