@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>配置中心 · 装备配置</title>
+<style>
+:root{
+  --primary:#01C6B2; --primary-dark:#019E8E; --primary-light:#E5F9F7;
+  --success:#52c41a; --warning:#faad14; --danger:#ff4d4f; --doing:#409EFF;
+  --text-title:#333; --text-body:#555; --text-muted:#999;
+  --border:#EBEEF5; --bg-page:#F2F3F5; --bg-card:#fff; --bg-header:#fafafa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:14px;color:var(--text-body);background:var(--bg-page);}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* 侧栏 */
+.sidebar{width:165px;background:#fff;border-right:1px solid var(--border);flex-shrink:0;overflow-y:auto}
+.brand{height:56px;display:flex;align-items:center;padding:0 16px;font-weight:600;color:var(--text-title);
+  border-bottom:1px solid var(--border);font-size:15px}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--primary);margin-right:8px}
+.nav-group{padding:10px 0 4px}
+.nav-group-title{font-size:12px;color:var(--text-muted);padding:4px 16px}
+.nav-item{padding:9px 16px;font-size:13px;color:var(--text-body);cursor:pointer;display:flex;align-items:center;gap:8px}
+.nav-item:hover{background:#f7f8fa}
+.nav-item.active{background:var(--primary-light);color:var(--primary-dark);font-weight:600;border-right:2px solid var(--primary)}
+.nav-item.disabled{color:#c4c7ce;cursor:not-allowed}
+.nav-item.disabled:hover{background:transparent}
+.nav-item .soon{font-size:10px;color:#c4c7ce;margin-left:auto;border:1px solid #e6e8ec;border-radius:3px;padding:0 4px}
+
+/* 主区 */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.header{height:56px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;
+  padding:0 20px;flex-shrink:0}
+.header .crumb{color:var(--text-muted);font-size:13px}
+.header .crumb b{color:var(--text-title);font-weight:600}
+.header .user{margin-left:auto;font-size:13px;color:var(--text-body);display:flex;align-items:center;gap:6px}
+.header .avatar{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:12px}
+.content{flex:1;overflow-y:auto;padding:16px 20px}
+
+/* 卡片 */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:16px}
+.page-title{font-size:18px;font-weight:600;color:var(--text-title);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+
+/* Tab */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tab{padding:9px 18px;font-size:14px;color:var(--text-body);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--primary-dark)}
+.tab.active{color:var(--primary-dark);font-weight:600;border-bottom-color:var(--primary)}
+
+/* 筛选栏 */
+.filter-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.filter-bar .field{display:flex;align-items:center;gap:6px}
+.filter-bar label{font-size:13px;color:var(--text-body);white-space:nowrap}
+.filter-bar .spacer{margin-left:auto}
+.table-actions{display:flex;gap:10px;margin-bottom:14px}
+.upload-zone{border:1px dashed var(--border);border-radius:6px;padding:32px 16px;text-align:center;background:var(--bg-header);cursor:pointer}
+.upload-zone:hover{border-color:var(--primary)}
+.upload-zone .uz-ic{font-size:34px;line-height:1}
+.upload-zone .uz-main{font-size:14px;color:var(--text-title);margin:10px 0 4px}
+.upload-zone .uz-sub{font-size:12px;color:var(--text-muted)}
+.batch-tip{font-size:12px;color:var(--text-muted);background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;padding:8px 12px;margin-top:14px;line-height:1.7}
+input,select{height:32px;border:1px solid var(--border);border-radius:4px;padding:0 10px;font-size:13px;
+  color:var(--text-body);background:#fff;outline:none}
+input:focus,select:focus{border-color:var(--primary)}
+input::placeholder{color:var(--text-muted)}
+.search-input{width:230px}
+
+/* 按钮 */
+.btn{height:32px;border-radius:4px;padding:0 16px;font-size:13px;cursor:pointer;border:1px solid var(--border);
+  background:#fff;color:var(--text-body);display:inline-flex;align-items:center;gap:5px}
+.btn:hover{border-color:#d0d3d9}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);border-color:var(--primary-dark)}
+.btn-ghost{background:#fff;border-color:var(--primary);color:var(--primary-dark)}
+.btn-ghost:hover{background:var(--primary-light)}
+.btn-text{border:none;background:none;color:var(--primary-dark);padding:0 6px}
+.btn-sm{height:28px;padding:0 10px;font-size:12px}
+
+/* 表格 */
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{background:var(--bg-header);color:var(--text-title);font-weight:600;text-align:left;
+  padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.data td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text-body)}
+table.data tr:hover td{background:#fafdfd}
+.link{color:var(--primary-dark);cursor:pointer;text-decoration:none;border-bottom:1px dashed transparent}
+.link:hover{border-bottom-color:var(--primary-dark)}
+.op-cell{display:flex;gap:4px;align-items:center}
+
+/* 图标 */
+.eq-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;font-weight:600;flex-shrink:0}
+.eq-icon.q-7{color:#5c3c00}
+.eq-icon-sm{width:28px;height:28px;font-size:12px;border-radius:5px}
+
+/* 品质标签 */
+.q-tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;color:#fff;white-space:nowrap}
+.q-1{background:#52c41a}.q-2{background:#409EFF}.q-3{background:#9254de}.q-4{background:#faad14}
+.q-5{background:#fa8c16}.q-6{background:#f5222d}.q-7{background:#d4af37;color:#5c3c00}
+
+/* 标记角标 */
+.mk{display:inline-block;font-size:11px;padding:0 6px;border-radius:3px;margin-right:4px}
+.mk-effect{background:#fff3e6;color:#fa8c16;border:1px solid #ffd591}
+.mk-suit{background:#f4ecff;color:#9254de;border:1px solid #d3adf7}
+.mk-skill{background:#e6fffb;color:#08979c;border:1px solid #87e8de}
+
+/* 分页 */
+.pager{display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-top:14px;font-size:13px;color:var(--text-muted)}
+.pager .pg{min-width:30px;height:30px;border:1px solid var(--border);border-radius:4px;background:#fff;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0 8px}
+.pager .pg:hover{border-color:var(--primary)}
+.pager .pg.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.pager .pg.disabled{color:#c4c7ce;cursor:not-allowed}
+
+/* 添加页 双栏 */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.col-head{font-size:14px;font-weight:600;color:var(--text-title);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.form-row{display:flex;align-items:center;margin-bottom:14px}
+.form-row label{width:120px;font-size:13px;color:var(--text-body);flex-shrink:0}
+.form-row label .req{color:var(--danger);margin-right:2px}
+.form-row .ctrl{flex:1}
+.form-row select,.form-row input{width:100%}
+.switch-row{display:flex;gap:24px;align-items:center}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
+.switch input{display:none}
+.switch .track{width:38px;height:20px;border-radius:10px;background:#d9d9d9;position:relative;transition:.2s}
+.switch .track::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.2s}
+.switch input:checked + .track{background:var(--primary)}
+.switch input:checked + .track::after{left:20px}
+
+/* 只读字段 (自动) */
+.gen-field{display:flex;align-items:center;padding:8px 10px;background:var(--bg-header);border:1px solid var(--border);
+  border-radius:4px;margin-bottom:8px}
+.gen-field .gk{width:130px;font-size:13px;color:var(--text-muted);flex-shrink:0}
+.gen-field .gv{flex:1;font-size:13px;color:var(--text-title);font-family:"Consolas",monospace;word-break:break-all}
+.badge-auto{font-size:10px;color:var(--text-muted);border:1px solid var(--border);border-radius:3px;padding:0 4px;margin-left:8px;background:#fff}
+
+/* 校验 */
+.verify-box{margin-top:14px;border:1px solid var(--border);border-radius:4px;padding:12px;background:#fff}
+.verify-box .vh{font-size:13px;font-weight:600;color:var(--text-title);margin-bottom:8px}
+.verify-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;border-top:1px dashed var(--border)}
+.verify-item:first-of-type{border-top:none}
+.v-ok{color:var(--success)}.v-bad{color:var(--danger)}
+.v-name{color:var(--text-body)}.v-id{font-family:monospace;color:var(--text-muted);font-size:12px}
+.v-fix{margin-left:auto}
+
+/* 详情字段三态 */
+.legend{display:flex;gap:16px;font-size:12px;color:var(--text-muted);margin-bottom:12px;align-items:center}
+.legend .li{display:flex;align-items:center;gap:5px}
+.legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.detail-section{margin-bottom:18px}
+.detail-section h4{font-size:14px;color:var(--text-title);margin-bottom:10px;font-weight:600}
+.kv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 16px}
+.kv{display:flex;align-items:center;padding:7px 10px;border-radius:4px;font-size:13px;border:1px solid var(--border)}
+.kv.manual{background:#fff}
+.kv.auto{background:var(--bg-header)}
+.kv .k{width:130px;color:var(--text-muted);flex-shrink:0}
+.kv .v{flex:1;color:var(--text-title);word-break:break-all}
+.kv .v.mono{font-family:monospace}
+.kv .badge-auto{margin-left:auto}
+.kv .rel-link{color:var(--primary-dark);cursor:pointer;border-bottom:1px dashed var(--primary-dark)}
+.kv .rel-link::before{content:"🔗 ";font-size:11px}
+
+/* 道具双列 */
+.item-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.item-col h5{font-size:13px;font-weight:600;margin-bottom:10px;padding:6px 10px;border-radius:4px}
+.item-col.unbind h5{background:#eef9f8;color:var(--primary-dark)}
+.item-col.bind h5{background:#f4ecff;color:#9254de}
+
+/* 抽屉 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;visibility:hidden;transition:.2s;z-index:40}
+.mask.show{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;transform:translateX(100%);
+  transition:.25s;z-index:50;display:flex;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.08)}
+.drawer.show{transform:translateX(0)}
+.drawer-head{height:52px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.drawer-head .dt{font-size:15px;font-weight:600;color:var(--text-title)}
+.drawer-head .close{margin-left:auto;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1;padding:4px}
+.crumbs{padding:10px 16px;font-size:12px;color:var(--text-muted);border-bottom:1px solid var(--border);
+  background:var(--bg-header);display:flex;flex-wrap:wrap;gap:2px;align-items:center}
+.crumbs .cb{color:var(--primary-dark);cursor:pointer}
+.crumbs .cb.cur{color:var(--text-title);cursor:default;font-weight:600}
+.crumbs .sep{color:#c4c7ce;margin:0 2px}
+.drawer-body{flex:1;overflow-y:auto;padding:16px}
+.entry-status{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 10px;border-radius:10px;margin-bottom:14px}
+.es-ok{background:#eaf8e0;color:var(--success)}
+.es-bad{background:#ffeced;color:var(--danger)}
+.entry-table{width:100%;border-collapse:collapse;font-size:13px}
+.entry-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.entry-table td.lab{color:var(--text-muted);width:120px}
+.entry-table td.val{color:var(--text-title);word-break:break-all}
+.rel-link{color:var(--primary-dark);cursor:pointer;border-bottom:1px dashed var(--primary-dark)}
+.rel-link::before{content:"🔗 ";font-size:11px}
+.sub-list{margin:2px 0 0;padding:0;list-style:none}
+.sub-list li{padding:2px 0}
+.muted{color:var(--text-muted)}
+.empty{color:var(--text-muted);text-align:center;padding:30px;font-size:13px}
+.note{font-size:12px;color:var(--text-muted);background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;padding:8px 12px;margin-bottom:14px}
+.note b{color:var(--text-body)}
+/* 补全配置弹窗 */
+.cfg-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.96);width:440px;background:#fff;
+  border-radius:6px;z-index:60;opacity:0;visibility:hidden;transition:.18s;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.cfg-modal.show{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}
+.cfg-modal .ch{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-title)}
+.cfg-modal .cb{padding:16px;max-height:60vh;overflow-y:auto}
+.cfg-modal .cf{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px}
+.cfg-modal .form-row{margin-bottom:12px}
+.cfg-modal .form-row label{width:auto;display:block;margin-bottom:5px;color:var(--text-muted)}
+.cfg-modal input{width:100%}
+.cfg-modal input[readonly]{background:var(--bg-header);color:var(--text-muted)}
+.todo-actions{display:flex;gap:10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 侧栏 -->
+  <aside class="sidebar">
+    <div class="brand"><span class="dot"></span>配置中心</div>
+    <div class="nav-group">
+      <div class="nav-group-title">业务配置</div>
+      <div class="nav-item active">🛡️ 装备配置</div>
+      <div class="nav-item disabled">📜 任务配置<span class="soon">预留</span></div>
+      <div class="nav-item disabled">🎯 活动配置<span class="soon">预留</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">公共配置</div>
+      <div class="nav-item disabled">🎁 item 道具<span class="soon">预留</span></div>
+      <div class="nav-item disabled">⚙️ func 功能<span class="soon">预留</span></div>
+      <div class="nav-item disabled">🌐 language<span class="soon">预留</span></div>
+      <div class="nav-item disabled">📊 prop 属性<span class="soon">预留</span></div>
+      <div class="nav-item disabled">✨ skill 技能<span class="soon">预留</span></div>
+    </div>
+  </aside>
+
+  <!-- 主区 -->
+  <div class="main">
+    <div class="header">
+      <div class="crumb" id="crumb">业务配置 / <b>装备配置</b></div>
+      <button class="btn btn-sm" style="margin-left:auto" onclick="openLoad()">📂 加载配表</button>
+      <button class="btn btn-sm btn-primary" style="margin-left:8px" onclick="openWrite()">💾 写回配表</button>
+      <div class="user" style="margin-left:16px"><span>策划-小明</span><span class="avatar">明</span></div>
+    </div>
+    <div class="content">
+      <!-- 列表视图 -->
+      <div id="view-list">
+        <div class="page-title">装备配置</div>
+        <div class="card">
+          <div class="tabs" id="jobTabs"></div>
+          <div class="filter-bar">
+            <div class="field">
+              <input class="search-input" id="searchInput" placeholder="搜索 装备ID / 备注，如 战士0转 或 3011">
+            </div>
+            <div class="field"><label>品质</label>
+              <select id="fQuality"><option value="">全部</option></select></div>
+            <div class="field"><label>转数</label>
+              <select id="fTransfer"><option value="">全部</option></select></div>
+            <div class="field"><label>部位</label>
+              <select id="fPart"><option value="">全部</option></select></div>
+            <div class="field"><label>配置状态</label>
+              <select id="fStatus">
+                <option value="">全部</option>
+                <option value="已配齐">已配齐</option>
+                <option value="待补">待补</option>
+                <option value="异常">数据异常</option>
+              </select></div>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn" onclick="resetFilter()">重置</button>
+          </div>
+          <div class="table-actions">
+            <button class="btn btn-primary" onclick="showAdd()">+ 添加装备</button>
+            <button class="btn btn-ghost" onclick="openBatch()">⬆ 批量添加</button>
+          </div>
+          <table class="data">
+            <thead><tr>
+              <th>图标</th><th>装备ID</th><th>备注</th><th>部位</th><th>职业</th>
+              <th>转数</th><th>品质</th><th>穿戴等级</th><th>标记</th><th>操作</th>
+            </tr></thead>
+            <tbody id="listBody"></tbody>
+          </table>
+          <div class="pager" id="pager"></div>
+        </div>
+      </div>
+
+      <!-- 添加视图 -->
+      <div id="view-add" style="display:none">
+       <!-- 阶段1 · 填写维度 -->
+       <div id="add-form">
+        <div class="page-title">
+          <span class="link" onclick="showList()">← 装备配置</span> / 添加装备 <span class="muted" style="font-size:13px;font-weight:400">（第 1 步 · 填写装备维度）</span>
+        </div>
+        <div class="note">装备配置走<b>对账模型</b>：先在 equip 填维度、生成装备行（equip 不读库、可先行）；<b>保存后</b>逐 FK 对账——<b>命中</b>则复用现有库行，<b>缺失</b>按同规则补建，存在但内部数据有问题的标「数据异常」。</div>
+        <div class="card">
+          <div class="two-col">
+            <!-- 左：维度输入 -->
+            <div>
+              <div class="col-head">维度输入（策划手填）</div>
+              <div class="form-row"><label><span class="req">*</span>装备部位</label>
+                <div class="ctrl"><select id="aPart"></select></div></div>
+              <div class="form-row"><label><span class="req">*</span>基础职业</label>
+                <div class="ctrl"><select id="aJob"></select></div></div>
+              <div class="form-row"><label><span class="req">*</span>转数</label>
+                <div class="ctrl"><select id="aTransfer"></select></div></div>
+              <div class="form-row"><label><span class="req">*</span>1-2转分支</label>
+                <div class="ctrl"><select id="aBranch"></select></div></div>
+              <div class="form-row"><label><span class="req">*</span>品质</label>
+                <div class="ctrl"><select id="aQuality"></select></div></div>
+              <div class="form-row"><label><span class="req">*</span>几级的装备</label>
+                <div class="ctrl"><input id="aJiji" type="number" min="1" max="6" value="1"></div></div>
+              <div class="form-row"><label><span class="req">*</span>挂件ID</label>
+                <div class="ctrl"><input id="aAcc" placeholder="选择资源…（占位）" value="w001"></div></div>
+              <div class="form-row"><label><span class="req">*</span>装备图标</label>
+                <div class="ctrl"><input id="aIcon" placeholder="选择资源…（占位）" value="equip_w001_001"></div></div>
+              <div class="col-head" style="margin-top:8px">功能开关</div>
+              <div class="switch-row">
+                <label class="switch"><input type="checkbox" id="aEffect"><span class="track"></span>特效</label>
+                <label class="switch"><input type="checkbox" id="aSuit"><span class="track"></span>套装</label>
+                <label class="switch"><input type="checkbox" id="aSkill"><span class="track"></span>装备技能</label>
+              </div>
+            </div>
+            <!-- 右：逻辑生成 -->
+            <div>
+              <div class="col-head">系统逻辑生成（只读 · 实时）</div>
+              <div id="genPanel"></div>
+              <div class="note" style="margin-top:12px">保存后进入第 2 步「配置补全」，逐项补齐关联库 / item 两条道具 / language 文案。</div>
+            </div>
+          </div>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="addSaveEquip()">保存装备，进入配置补全 →</button>
+            <button class="btn" onclick="showList()">取消</button>
+          </div>
+        </div>
+       </div>
+       <!-- 阶段2 · 配置补全 -->
+       <div id="add-todo" style="display:none">
+        <div class="page-title">
+          <span class="link" onclick="showList()">← 装备配置</span> / 配置补全 <span class="muted" style="font-size:13px;font-weight:400">（第 2 步 · 补齐关联库 / 道具 / 文案）</span>
+        </div>
+        <div id="todoHead" class="note"></div>
+        <div class="card" id="todoBody"></div>
+       </div>
+      </div>
+
+      <!-- 详情视图 -->
+      <div id="view-detail" style="display:none">
+        <div class="page-title">
+          <span class="link" onclick="showList()">← 装备配置</span> / <span id="dTitle"></span>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" id="dtab-equip" onclick="switchDetailTab('equip')">装备配置 (equip)</div>
+            <div class="tab" id="dtab-item" onclick="switchDetailTab('item')">道具配置 (item)</div>
+          </div>
+          <div class="legend">
+            <div class="li"><span class="sw" style="background:#fff;border:1px solid var(--border)"></span>手填</div>
+            <div class="li"><span class="sw" style="background:var(--bg-header);border:1px solid var(--border)"></span>自动生成</div>
+            <div class="li"><span class="sw" style="background:var(--primary-light);border:1px solid var(--primary)"></span>🔗 关联字段（可点击下钻）</div>
+          </div>
+          <div id="detail-equip"></div>
+          <div id="detail-item" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 关联抽屉 -->
+<div class="mask" id="mask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <span class="dt">关联库</span>
+    <span class="close" onclick="closeDrawer()">×</span>
+  </div>
+  <div class="crumbs" id="crumbs"></div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<!-- 补全配置弹窗 -->
+<div class="mask" id="cfgMask" onclick="closeCfg()"></div>
+<div class="cfg-modal" id="cfgModal">
+  <div class="ch" id="cfgTitle"></div>
+  <div class="cb" id="cfgBody"></div>
+  <div class="cf">
+    <button class="btn btn-primary" onclick="cfgSave()">保存</button>
+    <button class="btn" onclick="closeCfg()">取消</button>
+  </div>
+</div>
+
+<!-- 批量添加弹窗（仅展示样式，无实际上传逻辑） -->
+<div class="mask" id="batchMask" onclick="closeBatch()"></div>
+<div class="cfg-modal" id="batchModal" style="width:520px">
+  <div class="ch">批量添加装备</div>
+  <div class="cb">
+    <div class="upload-zone" onclick="alert('选择文件（演示，未接入实际上传）')">
+      <div class="uz-ic">📄</div>
+      <div class="uz-main">点击选择，或拖拽 Excel 文件到此处</div>
+      <div class="uz-sub">支持 .xlsx / .xls，单个文件包含多条装备基础数据（每行一件）</div>
+    </div>
+    <div class="batch-tip">
+      <b>导入说明：</b>表格每行一件装备，需含基础维度列（装备部位 / 基础职业 / 转数 / 分支 / 品质 / 几级 / 挂件 / 图标）。<br>
+      导入后系统按编码规则自动生成装备ID与各关联ID，并逐条进入「配置补全」对账（命中复用 / 缺失补建 / 数据异常）。
+      <a class="link" onclick="alert('下载导入模板（演示）')">下载导入模板</a>
+    </div>
+  </div>
+  <div class="cf">
+    <button class="btn btn-primary" onclick="alert('开始导入（演示，未接入实际功能）')">开始导入</button>
+    <button class="btn" onclick="closeBatch()">取消</button>
+  </div>
+</div>
+
+<!-- 加载配表弹窗（仅展示样式） -->
+<div class="mask" id="loadMask" onclick="closeLoad()"></div>
+<div class="cfg-modal" id="loadModal" style="width:560px">
+  <div class="ch">📂 加载本地配表</div>
+  <div class="cb">
+    <div class="upload-zone" onclick="alert('选择配表目录（演示，未接入 File System Access）')">
+      <div class="uz-ic">📁</div>
+      <div class="uz-main">点击选择「配表根目录」（含 equip 及关联表）</div>
+      <div class="uz-sub">浏览器直接读取本地 xlsx（File System Access API），不上传服务器；目录句柄记住、下次自动恢复</div>
+    </div>
+    <div class="batch-tip">
+      <b>将加载：</b>equip 主表 + 关联表（job_group / proplib / random_proplib / special_drop / suit / rare / skill_drop）+ 公共表（language / prop）。<br>
+      加载后建立<b>基线快照</b>（回写时据它比对改动），并对每件装备跑一次对账，标出 已配齐 / 待补 / 数据异常。
+    </div>
+    <div style="margin-top:14px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+      <div style="padding:8px 12px;background:var(--bg-header);font-size:13px;font-weight:600;color:var(--text-title)">已加载（演示数据）</div>
+      <table class="entry-table"><tbody>
+        <tr><td class="lab">equip 装备主表</td><td class="val">63 行</td></tr>
+        <tr><td class="lab">关联库（7 张）</td><td class="val">job_group 44 · proplib 23166 · random_proplib 295 · special_drop 140 · suit 85 · rare 7 · skill_drop 223</td></tr>
+        <tr><td class="lab">language 语言表</td><td class="val">350 条（中文已建索引）</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="cf">
+    <button class="btn btn-primary" onclick="closeLoad()">确定</button>
+    <button class="btn" onclick="closeLoad()">取消</button>
+  </div>
+</div>
+
+<!-- 写回配表弹窗（仅展示样式 · 含变更记录预览） -->
+<div class="mask" id="writeMask" onclick="closeWrite()"></div>
+<div class="cfg-modal" id="writeModal" style="width:620px">
+  <div class="ch">💾 写回本地配表</div>
+  <div class="cb">
+    <div class="note">回写<b>只改手填维度列与新增行</b>，<b>不碰公式列 / 格式</b>；落盘前先用 <b>ExcelMerge</b> 比对确认，并自动备份原表。下方为本次变更记录（写入即留痕）。</div>
+    <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:6px">
+      <div style="padding:8px 12px;background:var(--bg-header);font-size:13px;font-weight:600;color:var(--text-title)">本次变更记录 · changelog（演示）</div>
+      <div style="padding:10px 14px;font-size:12px;line-height:1.9;font-family:Consolas,monospace;color:var(--text-body);max-height:280px;overflow-y:auto">
+        <div style="color:var(--text-muted)">本次变更（2026-06-24 · 策划-小明）</div>
+        <div style="margin-top:6px"><b>■ equip 装备：新增 2 · 修改 1</b></div>
+        <div style="color:#52c41a">　+ 3011017001　战士0转1级太古武器（新增）</div>
+        <div style="color:#52c41a">　+ 3011015001　战士0转1级橙武器（新增）</div>
+        <div style="color:#faad14">　~ 3021011001　弓0转1级绿头饰：品质 绿→蓝、几级 1→2</div>
+        <div style="margin-top:6px"><b>■ 关联库：新增 3 条</b></div>
+        <div style="color:#52c41a">　+ equip_proplib　　　101007001（为 3011017001 补建）</div>
+        <div style="color:#52c41a">　+ equip_special_drop 1011011（特效）</div>
+        <div style="color:#52c41a">　+ equip_suit　　　　 5005</div>
+        <div style="margin-top:6px"><b>■ language：新增/改 4 条</b></div>
+        <div style="color:#52c41a">　+ EquipName_3011017001 = 太古战刃</div>
+      </div>
+    </div>
+    <div class="batch-tip" style="margin-top:12px">
+      变更记录将作为<b>提交说明</b>，可对接 <b>excel-batch-commit</b> 提交 trunk。回写仅改 source=手填 的单元格与新增行，公式列保留原公式。
+    </div>
+  </div>
+  <div class="cf">
+    <button class="btn btn-primary" onclick="alert('用 ExcelMerge 比对并写回（演示，未接入实际文件）')">ExcelMerge 比对并写回</button>
+    <button class="btn" onclick="closeWrite()">取消</button>
+  </div>
+</div>
+
+<script>
+/* ============ 字典 ============ */
+const PART={1:'武器',2:'头饰',3:'衣服',4:'肩膀',5:'手套',6:'裤子',7:'鞋子',8:'副武器',9:'戒指',10:'耳环',11:'项链'};
+const JOB={1:'战士',2:'弓箭手',3:'魔法师',4:'牧师'};
+const QUAL={1:'绿',2:'蓝',3:'普通紫',4:'金',5:'橙',6:'远古',7:'太古'};
+const QUAL_S={1:'绿',2:'蓝',3:'紫',4:'金',5:'橙',6:'远古',7:'太古'};
+const PHYS={1:1,2:1,3:2,4:2};            // 职业→物理1/魔法2
+const REAL_BASE=[1,30,60,90,120];        // 各转第一档真实等级
+const TRASH_CNT={1:0,2:2,3:3,4:3,5:2,6:1,7:0};
+const HIGH_CNT ={1:0,2:0,3:0,4:1,5:2,6:3,7:4};
+const pad=(n,l)=>String(n).padStart(l,'0');
+
+/* ============ 编码规则 ============ */
+function calcRealLevel(t,jiji){return REAL_BASE[t]+(jiji-1)*5;}
+function calcWearLevel(t){return REAL_BASE[t];}
+function calcZhongLei(p,j,t,b,q,rl){return '3'+pad(p,2)+j+t+b+q+pad(rl,3);}
+function calcGroupId(j,t,b,p){return ''+j+t+b+(p===1||p===8?0:1);} // 防具+1
+function calcPropLibId(p,j,t,q,rl){return ''+PHYS[j]+pad(p,2)+t+pad(q,2)+pad(rl,3);}
+function libTrash(p){return '5'+pad(p,2)+'11';}
+function libHigh(p){return '5'+pad(p,2)+'15';}
+function libAncient(p){return '6'+pad(p,2)+'35';}
+function libTaigu(p){return '7'+pad(p,2)+'35';}
+function calcFixedPropLib(p,q){
+  const arr=[libTrash(p)+','+TRASH_CNT[q], libHigh(p)+','+HIGH_CNT[q]];
+  if(q>=6)arr.push(libAncient(p)+',1');
+  if(q===7)arr.push(libTaigu(p)+',1');
+  return arr.join(';');
+}
+function calcDropId(p,j,t,b,jianshu){return ''+t+pad(p,2)+jianshu+j+b;}
+function calcHankSuit(j,t,b,jianshu){return ''+j+t+b+(jianshu-1);}
+function calcSkillGroup(j,t,b){return '50'+j+t+b;} // 装备技能随机库·技能组ID（mock 拼接，权威见 doc 09 表15）
+function eqName(j,t,rl,q,p){return JOB[j]+t+'转'+rl+'级'+QUAL_S[q]+PART[p];}
+
+/* ============ DB ============ */
+const DB={equip:[],equip_job_group:{},equip_proplib:{},equip_random_proplib:{},
+  equip_special_drop:{},equip_special_prop:{},equip_suit:{},equip_rare:{},
+  equip_skill_drop:{},equip_skill_effect:{},
+  language:{},item:{},prop:{},skill:{},soul:{}};
+
+/* 静态：属性主表 prop */
+const PROP_POOL={25:'基础攻击力',14:'防御力',1:'力量',2:'智力',3:'体力',12:'攻击力',
+  31:'暴击',33:'命中',40:'生命值',41:'格挡'};
+Object.entries(PROP_POOL).forEach(([id,name])=>{
+  DB.prop[id]={属性编号:id,属性名称:'PropName_'+id,属性名:name,属性类型:1};
+  DB.language['PropName_'+id]=name;
+});
+/* 静态：技能 skill（含特效用 + 装备技能用） */
+[['skill0024','辉耀光环'],['skill0031','破甲打击'],['skill0042','治愈之风'],
+ ['skill40401','傍友安身'],['skill40402','慧能涌动'],['skill40403','烈焰附体'],['skill40404','寒霜护盾']].forEach(([id,nm])=>{
+  DB.skill[id]={技能id:id,备注:nm};
+});
+/* 静态：装备技能效果 equip_skill_effect（→skill） */
+DB.equip_skill_effect['80001']={装备技能效果ID:'80001',技能ID:'skill40401',套装名:'傍友',套装数量:2,
+  套装名称:'SuitName_skill80001',评分:80,技能等级:1,属性值:''};
+DB.equip_skill_effect['80002']={装备技能效果ID:'80002',技能ID:'skill40402',套装名:'慧能',套装数量:4,
+  套装名称:'SuitName_skill80002',评分:160,技能等级:1,属性值:''};
+DB.language['SuitName_skill80001']='傍友安身';DB.language['SuitName_skill80002']='慧能涌动';
+/* 静态：特效效果 equip_special_prop */
+DB.equip_special_prop['90001']={特殊效果ID:'90001',特殊效果类型:1,特殊效果:'skill0024',特殊效果名称:'SP_90001',评分:120};
+DB.equip_special_prop['90002']={特殊效果ID:'90002',特殊效果类型:1,特殊效果:'skill0031',特殊效果名称:'SP_90002',评分:90};
+DB.language['SP_90001']='辉耀';DB.language['SP_90002']='裂甲';
+/* 静态：职业 soul */
+[[1,'战士'],[2,'弓箭手'],[3,'魔法师'],[4,'牧师'],
+ [1011001,'剑士'],[1012001,'迅剑士'],[2011001,'游侠'],[3011001,'术士'],[4011001,'祭司']].forEach(([id,nm])=>{
+  DB.soul[id]={职业ID:id,职业名称:'SoulName_'+id,职业定位:nm};
+  DB.language['SoulName_'+id]=nm;
+});
+/* 静态：品质表 equip_rare */
+const RARE_MAP={1:[2,0],2:[3,0],3:[4,0],4:[5,0],5:[6,0],6:[6,2],7:[7,0]};
+Object.entries(RARE_MAP).forEach(([q,[r,s]])=>{
+  DB.equip_rare[q]={装备品质:q,道具品质:r,道具品质名:'RareDes_'+r,强度子品质:s};
+  DB.language['RareDes_'+r]=['','','普通','优良','稀有','史诗','传说','神话'][r]||('品质'+r);
+});
+/* 套装池 */
+const SUIT_POOL=[5001,5002,5003,5004];
+SUIT_POOL.forEach((sid,i)=>{
+  DB.equip_suit[sid]={套装编号:sid,套装名称:'Equip_SuitName_'+sid,套装名:['久远岚息','烈焰战魂','寒霜守望','圣光庇护'][i],套装总数:6};
+  DB.language['Equip_SuitName_'+sid]=DB.equip_suit[sid].套装名+'套装';
+});
+
+/* 随机词条库：按部位生成候选词条 */
+function ensureRandomLib(libId,seedProps){
+  if(DB.equip_random_proplib[libId])return;
+  DB.equip_random_proplib[libId]={库ID:libId,词条:seedProps.map((pid,i)=>({
+    属性id:pid, 属性名:PROP_POOL[pid], 基准值:10+i*4, 权重:100-i*15, 词条品质:0
+  }))};
+}
+
+/* ============ 生成装备 + 关联库 ============ */
+let SEQ=0;
+/* 只构造 equip 行对象，不写任何关联库（自上而下：先建装备行） */
+function buildEquipObj(p,j,t,b,q,jiji,effect,suit,skill){
+  const rl=calcRealLevel(t,jiji), wl=calcWearLevel(t);
+  const zhonglei=calcZhongLei(p,j,t,b,q,rl);
+  const id=zhonglei;
+  const groupId=calcGroupId(j,t,b,p);
+  const propLibId=calcPropLibId(p,j,t,q,rl);
+  const fixedLib=calcFixedPropLib(p,q);
+  const jianshu=1;
+  const dropId=effect?calcDropId(p,j,t,b,jianshu):'';
+  const suitId=suit?SUIT_POOL[(p+j)%SUIT_POOL.length]:'';
+  const hankSuit=suit?calcHankSuit(j,t,b,jianshu):'';
+  const skillId=skill?calcSkillGroup(j,t,b):'';
+  const nameKey='EquipName_'+id, desKey='EquipDes_'+id;
+  const name=eqName(j,t,rl,q,p);
+  const icon='equip_'+['','w','h','c','s','g','k','b','o','r','e','n'][p]+pad(++SEQ,3)+'_'+pad(q,3);
+  return {id,zhonglei,part:p,job:j,transfer:t,branch:b,quality:q,jiji,rl,wl,
+    groupId,propLibId,fixedLib,dropId,suitId,hankSuit,skillId,nameKey,desKey,name,
+    effect,suit,skill,acc:'w'+pad(SEQ,3),icon,
+    phys:PHYS[j]};
+}
+/* 造种子数据：建装备行 + 同时把关联库/道具/文案都登记好（已配齐的历史数据） */
+function mkEquip(p,j,t,b,q,jiji,effect,suit,skill){
+  const eq=buildEquipObj(p,j,t,b,q,jiji,effect,suit,skill);
+  const {id,groupId,propLibId,dropId,suitId,skillId,nameKey,desKey,name,rl,wl,icon}=eq;
+  DB.equip.push(eq);
+
+  // 关联库登记（使种子装备的引用都存在 → 详情显示 ✔）
+  if(!DB.equip_job_group[groupId]){
+    const jobs=[j]; if(t>=1)jobs.push(Number(''+j+'01'+b+'001'));
+    DB.equip_job_group[groupId]={组ID:groupId,职业ID:jobs,基础职业:j,转数:t,分支:b,
+      说明:JOB[j]+t+'转分支'+b+'职业组'};
+  }
+  DB.equip_proplib[propLibId]={属性库ID:propLibId,备注:rl+'级'+QUAL_S[q]+PART[p],
+    属性值:(PHYS[j]===1?'25,'+(20+rl):'25,'+(15+rl))+';14,'+(5+Math.floor(rl/3)),
+    部位:p,品质:q};
+  ensureRandomLib(libTrash(p),[1,3,14]);
+  ensureRandomLib(libHigh(p),[25,31,33]);
+  if(q>=6)ensureRandomLib(libAncient(p),[40,41]);
+  if(q===7)ensureRandomLib(libTaigu(p),[2,12]);
+  if(effect){
+    DB.equip_special_drop[dropId]={属性库ID:dropId,条目:[
+      {属性ID:'90001',效果备注:'辉耀',权重:60},{属性ID:'90002',效果备注:'裂甲',权重:40}]};
+  }
+  if(skill){
+    // 装备技能随机库：同一技能组下挂多条候选技能、按权重；每条 → equip_skill_effect
+    DB.equip_skill_drop[skillId]={技能组ID:skillId,装备部位列表:String(p),
+      职业要求:String(j),基础职业:j,转数:t,分支:b,
+      条目:[{效果备注:'傍友',权重:60,关联技能效果编号:'80001'},
+            {效果备注:'慧能',权重:40,关联技能效果编号:'80002'}]};
+  }
+  DB.language[nameKey]=name;
+  DB.language[desKey]='一件'+QUAL_S[q]+'品质的'+PART[p]+'，需'+wl+'级穿戴。';
+  // item 两条
+  const bindId='8'+id;
+  DB.item[id]={道具ID:id,绑定:false,绑定物品ID:bindId,未绑定物品ID:'',道具名字:nameKey,
+    道具品质:RARE_MAP[q][0],道具Icon:icon,叠加数量:1,页签:JOB[j]+'装备',道具出售返还:'1000,'+(rl*100)};
+  DB.item[bindId]={道具ID:bindId,绑定:true,绑定物品ID:'',未绑定物品ID:id,道具名字:nameKey,
+    道具品质:RARE_MAP[q][0],道具Icon:icon,叠加数量:1,页签:JOB[j]+'装备-绑定装备',道具出售返还:'1000,'+(rl*100)};
+  return eq;
+}
+
+/* 批量造数据 */
+(function seed(){
+  const parts=[1,3,9], transfers=[0,1,2], quals=[1,2,3,4,5];
+  for(const j of [1,2,3,4])
+    for(const p of parts)
+      for(const t of transfers)
+        for(const q of quals){
+          const effect=(q>=4 && (j+p+t)%2===0);
+          const suit=(q>=3 && (j+p)%3===0);
+          const skill=(q>=4 && (j+t)%2===1);             // 部分高品质带装备技能
+          mkEquip(p,j,t,1,q,1,effect,suit,skill);
+        }
+  // 少量高品质特例（远古/太古）
+  mkEquip(1,1,2,1,6,1,true,true,true);
+  mkEquip(1,2,2,1,7,1,true,true,true);
+  mkEquip(3,3,1,1,6,1,false,true,false);
+
+  // 故意制造“缺失（悬空）”用于演示：删掉某条 proplib（引用它的装备 → 待补）
+  const broken=DB.equip.find(e=>e.job===4&&e.part===9&&e.transfer===2&&e.quality===5);
+  if(broken){delete DB.equip_proplib[broken.propLibId]; broken._brokenProp=true;}
+
+  // 制造“关联表数据异常”用于演示（库条目存在，但内部数据有问题）
+  const abA=DB.equip.find(e=>e.effect);                           // 特效库的条目指向不存在的 special_prop
+  if(abA&&DB.equip_special_drop[abA.dropId])
+    DB.equip_special_drop[abA.dropId].条目.push({属性ID:'99099',效果备注:'(未配效果)',权重:20});
+  const abB=DB.equip.find(e=>e.job===2&&e.part===1&&e.quality>=3); // proplib 属性值引用不存在的 prop 编号
+  if(abB&&DB.equip_proplib[abB.propLibId]) DB.equip_proplib[abB.propLibId].属性值='999,30;14,8';
+  const abC=DB.equip.find(e=>e.job===3&&e.part===3&&e.transfer>=1);// job_group 含一个不存在的 soul 职业
+  if(abC&&DB.equip_job_group[abC.groupId]) DB.equip_job_group[abC.groupId].职业ID.push('7777777');
+
+  // 装备技能线：制造 1 条悬空 + 1 条数据异常用于演示
+  const sBroken=DB.equip.find(e=>e.skill&&e.job===1);
+  if(sBroken){delete DB.equip_skill_drop[sBroken.skillId]; sBroken._brokenSkill=true;}
+  const sAbnD=DB.equip.find(e=>e.skill&&e.job===2);                // skill_drop 条目指向不存在的 skill_effect
+  if(sAbnD&&DB.equip_skill_drop[sAbnD.skillId])
+    DB.equip_skill_drop[sAbnD.skillId].条目.push({效果备注:'(未配效果)',权重:10,关联技能效果编号:'89999'});
+  const sAbnE=DB.equip.find(e=>e.skill&&e.job===3);                // skill_effect 条目的技能ID 在 skill 中不存在
+  if(sAbnE&&DB.equip_skill_drop[sAbnE.skillId]){
+    const eid=DB.equip_skill_drop[sAbnE.skillId].条目[0].关联技能效果编号;
+    if(DB.equip_skill_effect[eid]) DB.equip_skill_effect[eid]={...DB.equip_skill_effect[eid],技能ID:'skillX9999'};
+  }
+
+  // 全量体检：一次性算好每件装备的配置状态（写时算；列表只读字段）
+  DB.equip.forEach(computeStatus);
+})();
+
+/* ============ 对账：状态计算 + 数据异常检测 ============ */
+/* 检测一个库条目的"数据异常"：下游悬空 + （有装备上下文时）维度不一致 */
+function entryProblems(table,id,ctx){
+  const data=DB[table]&&DB[table][id];
+  if(!data)return{missing:true,probs:[]};
+  const probs=[];
+  if(table==='equip_special_drop')
+    data.条目.forEach(c=>{if(!DB.equip_special_prop[c.属性ID])probs.push('特效效果 '+c.属性ID+' 在 equip_special_prop 中不存在（下游悬空）');});
+  else if(table==='equip_special_prop'){
+    if(!DB.skill[data.特殊效果])probs.push('技能 '+data.特殊效果+' 在 skill 中不存在（下游悬空）');
+  }else if(table==='equip_skill_drop')
+    data.条目.forEach(c=>{if(!DB.equip_skill_effect[c.关联技能效果编号])probs.push('装备技能效果 '+c.关联技能效果编号+' 在 equip_skill_effect 中不存在（下游悬空）');});
+  else if(table==='equip_skill_effect'){
+    if(!DB.skill[data.技能ID])probs.push('技能 '+data.技能ID+' 在 skill 中不存在（下游悬空）');
+  }else if(table==='equip_job_group')
+    data.职业ID.forEach(jid=>{if(!DB.soul[jid])probs.push('职业 '+jid+' 在 soul 中不存在（下游悬空）');});
+  else if(table==='equip_proplib')
+    data.属性值.split(';').forEach(p=>{const pid=p.split(',')[0];if(pid&&!DB.prop[pid])probs.push('属性 '+pid+' 在 prop 中不存在（下游悬空）');});
+  else if(table==='equip_random_proplib')
+    data.词条.forEach(w=>{if(w.属性id&&!DB.prop[w.属性id])probs.push('属性 '+w.属性id+' 在 prop 中不存在（下游悬空）');});
+  // 维度一致性（仅当从某件装备点进来时）
+  if(ctx){
+    if(table==='equip_proplib'){
+      if(data.部位!=null&&Number(data.部位)!==ctx.part)probs.push('维度不一致：库行部位='+PART[data.部位]+'，装备部位='+PART[ctx.part]);
+      if(data.品质!=null&&Number(data.品质)!==ctx.quality)probs.push('维度不一致：库行品质='+QUAL_S[data.品质]+'，装备品质='+QUAL_S[ctx.quality]);
+    }
+    if(table==='equip_job_group'){
+      if(data.基础职业!=null&&Number(data.基础职业)!==ctx.job)probs.push('维度不一致：库行职业='+JOB[data.基础职业]+'，装备职业='+JOB[ctx.job]);
+      if(data.转数!=null&&Number(data.转数)!==ctx.transfer)probs.push('维度不一致：库行转数='+data.转数+'，装备转数='+ctx.transfer);
+    }
+    if(table==='equip_skill_drop'){
+      if(data.基础职业!=null&&Number(data.基础职业)!==ctx.job)probs.push('维度不一致：库行职业='+JOB[data.基础职业]+'，装备职业='+JOB[ctx.job]);
+      if(data.转数!=null&&Number(data.转数)!==ctx.transfer)probs.push('维度不一致：库行转数='+data.转数+'，装备转数='+ctx.transfer);
+    }
+  }
+  return{missing:false,probs};
+}
+/* 算一件装备的配置状态（落到 eq 字段，列表只读它） */
+function computeStatus(e){
+  let missing=0,abnormal=false;
+  requiredLibs(e).forEach(r=>{
+    const res=entryProblems(r.table,r.id,null);   // 列表态只看下游悬空，不做按装备的维度核对
+    if(res.missing)missing++; else if(res.probs.length)abnormal=true;
+  });
+  if(!(DB.item[e.id]&&DB.item['8'+e.id]))missing++;
+  if(!(DB.language[e.nameKey]&&DB.language[e.desKey]))missing++;
+  e.missingCount=missing;
+  e.abnormal=abnormal;
+  e.cfgStatus=missing>0?'待补':(abnormal?'异常':'已配齐');
+  e._incomplete=missing>0;
+}
+
+/* ============ 列表渲染 ============ */
+let curJob='', curPage=1, pageSize=20, filtered=[];
+function iconHtml(eq,sm){
+  // 资源库未接入 → 占位：品质色底 + 部位首字
+  return '<div class="eq-icon q-'+eq.quality+(sm?' eq-icon-sm':'')+'" title="'+eq.icon+'">'+PART[eq.part][0]+'</div>';
+}
+function qtag(q){return '<span class="q-tag q-'+q+'">'+QUAL_S[q]+'</span>';}
+function markHtml(eq){
+  // 列表「标记」列只示配置状态三态（doc12 §七/§十二）：待补 / 数据异常 / 已配齐；
+  // 特效·套装·装备技能等功能角标暂不在列表展示。
+  if(eq.missingCount>0)return '<span class="mk" style="background:#fff1f0;color:#ff4d4f;border:1px solid #ffccc7">待补 '+eq.missingCount+' 项</span>';
+  if(eq.abnormal)return '<span class="mk" style="background:#fff7e6;color:#fa8c16;border:1px solid #ffd591">数据异常</span>';
+  return '<span class="mk" style="background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f">已配齐</span>';}
+
+function buildFilters(){
+  const tabs=document.getElementById('jobTabs');
+  tabs.innerHTML='<div class="tab active" data-job="" onclick="selJob(this,\'\')">全部</div>'+
+    Object.entries(JOB).map(([k,v])=>'<div class="tab" data-job="'+k+'" onclick="selJob(this,\''+k+'\')">'+v+'</div>').join('');
+  document.getElementById('fQuality').innerHTML='<option value="">全部</option>'+Object.entries(QUAL).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('');
+  document.getElementById('fTransfer').innerHTML='<option value="">全部</option>'+[0,1,2,3,4].map(t=>'<option value="'+t+'">'+t+'转</option>').join('');
+  document.getElementById('fPart').innerHTML='<option value="">全部</option>'+Object.entries(PART).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('');
+}
+function selJob(el,j){document.querySelectorAll('#jobTabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');curJob=j;curPage=1;applyFilter();}
+function applyFilter(){
+  const kw=document.getElementById('searchInput').value.trim();
+  const q=document.getElementById('fQuality').value;
+  const t=document.getElementById('fTransfer').value;
+  const p=document.getElementById('fPart').value;
+  const st=document.getElementById('fStatus').value;
+  filtered=DB.equip.filter(e=>{
+    if(curJob&&String(e.job)!==curJob)return false;
+    if(q&&String(e.quality)!==q)return false;
+    if(t&&String(e.transfer)!==t)return false;
+    if(p&&String(e.part)!==p)return false;
+    if(st&&e.cfgStatus!==st)return false;
+    if(kw&&!(e.id.includes(kw)||e.name.includes(kw)))return false;
+    return true;
+  });
+  curPage=1;renderList();
+}
+function resetFilter(){document.getElementById('searchInput').value='';document.getElementById('fQuality').value='';
+  document.getElementById('fTransfer').value='';document.getElementById('fPart').value='';
+  document.getElementById('fStatus').value='';applyFilter();}
+function renderList(){
+  const body=document.getElementById('listBody');
+  const total=filtered.length, pages=Math.max(1,Math.ceil(total/pageSize));
+  if(curPage>pages)curPage=pages;
+  const rows=filtered.slice((curPage-1)*pageSize,curPage*pageSize);
+  body.innerHTML=rows.length?rows.map(e=>`<tr>
+    <td>${iconHtml(e)}</td>
+    <td><span class="link" onclick="showDetail('${e.id}')">${e.id}</span></td>
+    <td>${e.name}</td><td>${PART[e.part]}</td><td>${JOB[e.job]}</td>
+    <td>${e.transfer}转</td><td>${qtag(e.quality)}</td><td>${e.wl}</td>
+    <td>${markHtml(e)}</td>
+    <td><div class="op-cell">
+      <button class="btn btn-text btn-sm" onclick="showDetail('${e.id}')">详情</button>
+      <button class="btn btn-text btn-sm" onclick="editEquip('${e.id}')">编辑</button>
+      <button class="btn btn-text btn-sm" onclick="alert('复制（演示）')">复制</button>
+    </div></td></tr>`).join(''):'<tr><td colspan="10"><div class="empty">没有匹配的装备</div></td></tr>';
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  const pg=document.getElementById('pager');let h='共 '+total+' 条　';
+  h+='<span class="pg '+(curPage===1?'disabled':'')+'" onclick="goPage('+(curPage-1)+')">‹</span>';
+  for(let i=1;i<=pages;i++) h+='<span class="pg '+(i===curPage?'active':'')+'" onclick="goPage('+i+')">'+i+'</span>';
+  h+='<span class="pg '+(curPage===pages?'disabled':'')+'" onclick="goPage('+(curPage+1)+')">›</span>';
+  pg.innerHTML=h;
+}
+function goPage(p){const pages=Math.max(1,Math.ceil(filtered.length/pageSize));if(p<1||p>pages)return;curPage=p;renderList();}
+
+/* ============ 视图切换 ============ */
+function showList(){view('list');document.getElementById('crumb').innerHTML='业务配置 / <b>装备配置</b>';}
+function showAdd(){view('add');document.getElementById('crumb').innerHTML='业务配置 / 装备配置 / <b>添加装备</b>';
+  editingId=null;addedEquip=null;
+  document.getElementById('add-form').style.display='';
+  document.getElementById('add-todo').style.display='none';
+  refreshAdd();}
+function showDetail(id){curDetail=DB.equip.find(e=>e.id===id);view('detail');
+  document.getElementById('crumb').innerHTML='业务配置 / 装备配置 / <b>详情</b>';
+  document.getElementById('dTitle').textContent=curDetail.name+' ('+id+')';
+  switchDetailTab('equip');renderDetailEquip();renderDetailItem();}
+function view(v){['list','add','detail'].forEach(x=>document.getElementById('view-'+x).style.display=(x===v?'':'none'));}
+
+/* ============ 添加页 ============ */
+function fillSel(id,map,labelFn){document.getElementById(id).innerHTML=Object.entries(map).map(([k,v])=>'<option value="'+k+'">'+labelFn(k,v)+'</option>').join('');}
+function buildAdd(){
+  fillSel('aPart',PART,(k,v)=>v);
+  fillSel('aJob',JOB,(k,v)=>v);
+  document.getElementById('aTransfer').innerHTML=[0,1,2,3,4].map(t=>'<option value="'+t+'">'+t+'转</option>').join('');
+  document.getElementById('aBranch').innerHTML=[1,2].map(b=>'<option value="'+b+'">分支'+b+'</option>').join('');
+  fillSel('aQuality',QUAL,(k,v)=>k+' '+v);
+  ['aPart','aJob','aTransfer','aBranch','aQuality','aJiji','aEffect','aSuit','aSkill'].forEach(id=>{
+    const el=document.getElementById(id);el.addEventListener('change',refreshAdd);el.addEventListener('input',refreshAdd);});
+}
+function readAdd(){return{p:+document.getElementById('aPart').value,j:+document.getElementById('aJob').value,
+  t:+document.getElementById('aTransfer').value,b:+document.getElementById('aBranch').value,
+  q:+document.getElementById('aQuality').value,jiji:+document.getElementById('aJiji').value||1,
+  effect:document.getElementById('aEffect').checked,suit:document.getElementById('aSuit').checked,
+  skill:document.getElementById('aSkill').checked};}
+function refreshAdd(){
+  const{p,j,t,b,q,jiji,effect,suit,skill}=readAdd();
+  const rl=calcRealLevel(t,jiji),wl=calcWearLevel(t);
+  const id=calcZhongLei(p,j,t,b,q,rl);
+  const groupId=calcGroupId(j,t,b,p),propLibId=calcPropLibId(p,j,t,q,rl),fixedLib=calcFixedPropLib(p,q);
+  const dropId=effect?calcDropId(p,j,t,b,1):'(无)';
+  const hankSuit=suit?calcHankSuit(j,t,b,1):'(无)';
+  const skillId=skill?calcSkillGroup(j,t,b):'(无)';
+  const name=eqName(j,t,rl,q,p);
+  const gen=[['装备ID',id],['种类(SKU)',id],['备注',name],['真实等级',rl],['穿戴等级',wl],
+    ['使用职业限制',groupId],['初始基础属性库id',propLibId],['初始随机属性库id',fixedLib],
+    ['特殊属性库ID',dropId],['图鉴套装ID',hankSuit],['装备技能随机库',skillId],
+    ['名称Key','EquipName_'+id],['描述Key','EquipDes_'+id]];
+  document.getElementById('genPanel').innerHTML=gen.map(([k,v])=>
+    '<div class="gen-field"><span class="gk">'+k+'</span><span class="gv">'+v+'</span><span class="badge-auto">自动</span></div>').join('');
+}
+/* —— 自上而下：第1步保存装备行（不写关联库），第2步补全 —— */
+let addedEquip=null, editingId=null;
+/* 列表「编辑」：带入该装备维度，进入编辑模式 */
+function editEquip(id){
+  const e=DB.equip.find(x=>x.id===id); if(!e)return;
+  editingId=id; addedEquip=null;
+  view('add');
+  document.getElementById('crumb').innerHTML='业务配置 / 装备配置 / <b>编辑装备</b>';
+  document.getElementById('add-form').style.display='';
+  document.getElementById('add-todo').style.display='none';
+  const set=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v;};
+  set('aPart',e.part);set('aJob',e.job);set('aTransfer',e.transfer);set('aBranch',e.branch);
+  set('aQuality',e.quality);set('aJiji',e.jiji);set('aAcc',e.acc||'');set('aIcon',e.icon||'');
+  const chk=(i,v)=>{const el=document.getElementById(i);if(el)el.checked=!!v;};
+  chk('aEffect',e.effect);chk('aSuit',e.suit);chk('aSkill',e.skill);
+  refreshAdd();
+}
+function addSaveEquip(){
+  const{p,j,t,b,q,jiji,effect,suit,skill}=readAdd();
+  const eq=buildEquipObj(p,j,t,b,q,jiji,effect,suit,skill);
+  // 撞号检查：编辑模式放行被编辑装备自身（没改维度也能保存）
+  if(DB.equip.some(x=>x.id===eq.id && x.id!==editingId)){
+    alert('该维度的装备已存在：'+eq.id+'\n（种类相同会撞ID，请调整维度）');return;}
+  eq._incomplete=true;
+  if(editingId){
+    const idx=DB.equip.findIndex(x=>x.id===editingId);
+    if(idx>=0)DB.equip[idx]=eq; else DB.equip.push(eq);   // 更新原行（改了维度则连 ID 一并更新）
+  }else{
+    DB.equip.push(eq);          // 新增：装备行先建出来
+  }
+  addedEquip=eq;
+  document.getElementById('add-form').style.display='none';
+  document.getElementById('add-todo').style.display='';
+  renderTodo();
+}
+/* 这件装备依赖的关联库清单 */
+function requiredLibs(e){
+  const r=[{table:'equip_proplib',id:e.propLibId,label:'固定基础属性库'},
+    {table:'equip_job_group',id:e.groupId,label:'职业组（谁能穿）'},
+    {table:'equip_random_proplib',id:libTrash(e.part),label:'随机词条·垃圾库'},
+    {table:'equip_random_proplib',id:libHigh(e.part),label:'随机词条·高级库'}];
+  if(e.quality>=6)r.push({table:'equip_random_proplib',id:libAncient(e.part),label:'随机词条·远古库'});
+  if(e.quality===7)r.push({table:'equip_random_proplib',id:libTaigu(e.part),label:'随机词条·太古库'});
+  if(e.effect)r.push({table:'equip_special_drop',id:e.dropId,label:'特效库'});
+  if(e.suit)r.push({table:'equip_suit',id:e.suitId,label:'套装'});
+  if(e.skill)r.push({table:'equip_skill_drop',id:e.skillId,label:'装备技能随机库'});
+  return r;
+}
+function todoRow(state,label,sub,actionHtml,okLabel,probs){
+  const ic=state==='ok'?'<span class="v-ok">✔</span>':state==='abn'?'<span style="color:#fa8c16">⚠</span>':'<span class="v-bad">○</span>';
+  const right=state==='ok'?'<span class="v-ok">'+(okLabel||'已配置')+'</span>':actionHtml;
+  let row='<div class="verify-item">'+ic+'<span class="v-name">'+label+'</span><span class="v-id">'+sub+'</span>'+
+    '<span class="v-fix">'+right+'</span></div>';
+  if(state==='abn'&&probs&&probs.length)
+    row+='<div style="font-size:11px;color:#ad6800;padding:0 0 6px 26px;line-height:1.6">'+probs.map(p=>'⚠ '+p).join('<br>')+'</div>';
+  return row;
+}
+function renderTodo(){
+  const e=addedEquip;if(!e)return;
+  const reqs=requiredLibs(e);
+  let existLib=0,abnLib=0;
+  const libRows=reqs.map(r=>{
+    const res=entryProblems(r.table,r.id,e);
+    if(res.missing)return todoRow('miss',r.label,r.table+' · '+r.id,
+      '<button class="btn btn-ghost btn-sm" onclick="cfgLibRoute(\''+r.table+'\',\''+r.id+'\')">去补建</button>');
+    existLib++;
+    if(res.probs.length){abnLib++;
+      return todoRow('abn',r.label,r.table+' · '+r.id,
+        '<button class="btn btn-ghost btn-sm" onclick="openRel(\''+r.table+'\',\''+r.id+'\',true)">查看异常</button>',null,res.probs);}
+    return todoRow('ok',r.label,r.table+' · '+r.id,'','命中·复用');
+  }).join('');
+  const itemDone=!!(DB.item[e.id]&&DB.item['8'+e.id]);
+  const langDone=!!(DB.language[e.nameKey]&&DB.language[e.desKey]);
+  const total=reqs.length+2, done=existLib+(itemDone?1:0)+(langDone?1:0);
+  computeStatus(e);   // 同步列表用的配置状态字段
+  document.getElementById('todoHead').innerHTML=
+    '装备已创建：<b>'+e.name+'</b>（'+e.id+'）　对账完成度 '+
+    '<b style="color:'+(done<total?'var(--danger)':'var(--success)')+'">'+done+' / '+total+'</b>'+
+    (abnLib?'　<b style="color:#fa8c16">数据异常 '+abnLib+' 项</b>':'')+
+    '　——逐 FK 对账：命中即复用现有库行，缺失按同规则补建；存在但内部数据有问题的标「数据异常」。';
+  let h='<div class="detail-section"><h4>① 关联表（库） · 逐 FK 对账（命中复用 / 缺失补建 / 数据异常）</h4>'+libRows+'</div>';
+  h+='<div class="detail-section"><h4>② 配套道具（item） · 非绑 + 绑定两条（逐件新建）</h4>';
+  h+=todoRow(itemDone?'ok':'miss','item 道具','非绑 '+e.id+' ＋ 绑定 8'+e.id,
+    '<button class="btn btn-ghost btn-sm" onclick="cfgItem()">一键生成两条</button>','已生成');
+  h+='</div><div class="detail-section"><h4>③ 文案（language） · 名称 / 描述</h4>';
+  h+=todoRow(langDone?'ok':'miss','language 文案',e.nameKey+' / '+e.desKey,
+    '<button class="btn btn-ghost btn-sm" onclick="cfgLang()">补文案</button>','已补文案');
+  h+='</div><div class="todo-actions">'+
+    '<button class="btn btn-primary" onclick="finishAdd()">完成，返回列表</button>'+
+    '<button class="btn" onclick="showDetail(\''+e.id+'\')">查看装备详情</button></div>';
+  document.getElementById('todoBody').innerHTML=h;
+}
+function finishAdd(){renderTodo();applyFilter();showList();}
+
+/* —— 补全配置弹窗 —— */
+let cfgFields=null,cfgOnSave=null;
+function openCfg(title,fields,onSave){
+  document.getElementById('cfgTitle').textContent=title;
+  document.getElementById('cfgBody').innerHTML=fields.map(f=>
+    '<div class="form-row"><label>'+f.label+'</label><input id="cfg_'+f.key+'" value="'+(f.value||'')+'" '+(f.readonly?'readonly':'')+'></div>').join('');
+  cfgFields=fields;cfgOnSave=onSave;
+  document.getElementById('cfgMask').classList.add('show');
+  document.getElementById('cfgModal').classList.add('show');
+}
+function closeCfg(){document.getElementById('cfgMask').classList.remove('show');document.getElementById('cfgModal').classList.remove('show');}
+
+/* —— 批量添加弹窗（仅展示，无实际上传逻辑） —— */
+function openBatch(){document.getElementById('batchMask').classList.add('show');document.getElementById('batchModal').classList.add('show');}
+function closeBatch(){document.getElementById('batchMask').classList.remove('show');document.getElementById('batchModal').classList.remove('show');}
+
+/* —— 加载 / 写回配表弹窗（仅展示） —— */
+function openLoad(){document.getElementById('loadMask').classList.add('show');document.getElementById('loadModal').classList.add('show');}
+function closeLoad(){document.getElementById('loadMask').classList.remove('show');document.getElementById('loadModal').classList.remove('show');}
+function openWrite(){document.getElementById('writeMask').classList.add('show');document.getElementById('writeModal').classList.add('show');}
+function closeWrite(){document.getElementById('writeMask').classList.remove('show');document.getElementById('writeModal').classList.remove('show');}
+function cfgSave(){const v={};cfgFields.forEach(f=>v[f.key]=document.getElementById('cfg_'+f.key).value);cfgOnSave(v);closeCfg();renderTodo();}
+
+function cfgLibRoute(table,id){
+  const e=addedEquip;
+  if(table==='equip_proplib')openCfg('补 固定属性库 · '+id,[
+    {key:'id',label:'属性库ID',value:id,readonly:true},
+    {key:'remark',label:'备注',value:e.rl+'级'+QUAL_S[e.quality]+PART[e.part]},
+    {key:'props',label:'属性值（属性ID,数值;…）',value:(e.phys===1?'25,'+(20+e.rl):'25,'+(15+e.rl))+';14,'+(5+Math.floor(e.rl/3))}],
+    v=>{DB.equip_proplib[id]={属性库ID:id,备注:v.remark,属性值:v.props,部位:e.part,品质:e.quality};});
+  else if(table==='equip_job_group')openCfg('补 职业组 · '+id,[
+    {key:'id',label:'组ID',value:id,readonly:true},
+    {key:'base',label:'基础职业（1战2弓3法4牧）',value:e.job},
+    {key:'jobs',label:'职业ID列表（逗号，→soul）',value:e.job+(e.transfer>=1?(','+e.job+'01'+e.branch+'001'):'')}],
+    v=>{DB.equip_job_group[id]={组ID:id,基础职业:Number(v.base),转数:e.transfer,分支:e.branch,
+      职业ID:v.jobs.split(',').map(s=>s.trim()),说明:JOB[e.job]+e.transfer+'转分支'+e.branch+'职业组'};});
+  else if(table==='equip_random_proplib')openCfg('补 随机词条库 · '+id,[
+    {key:'id',label:'随机库ID',value:id,readonly:true},
+    {key:'props',label:'候选属性ID（逗号，→prop）',value:'1,3,14'}],
+    v=>{DB.equip_random_proplib[id]={库ID:id,词条:v.props.split(',').map((pid,i)=>({
+      属性id:pid.trim(),属性名:PROP_POOL[pid.trim()]||('属性'+pid.trim()),基准值:10+i*4,权重:100-i*15,词条品质:0}))};});
+  else if(table==='equip_special_drop')openCfg('补 特效库 · '+id,[
+    {key:'id',label:'特效库ID',value:id,readonly:true},
+    {key:'prop',label:'特效效果ID（→special_prop）',value:'90001'},
+    {key:'w',label:'权重',value:'100'}],
+    v=>{DB.equip_special_drop[id]={属性库ID:id,条目:[{属性ID:v.prop,
+      效果备注:(DB.equip_special_prop[v.prop]?DB.equip_special_prop[v.prop].特殊效果名称:'效果'),权重:Number(v.w)}]};});
+  else if(table==='equip_suit')openCfg('补 套装 · '+id,[
+    {key:'id',label:'套装编号',value:id,readonly:true},
+    {key:'name',label:'套装名',value:'新套装'},
+    {key:'sum',label:'套装总数',value:'6'}],
+    v=>{DB.equip_suit[id]={套装编号:id,套装名称:'Equip_SuitName_'+id,套装名:v.name,套装总数:Number(v.sum)};
+      DB.language['Equip_SuitName_'+id]=v.name+'套装';});
+  else if(table==='equip_skill_drop')openCfg('补 装备技能随机库 · '+id,[
+    {key:'id',label:'技能组ID',value:id,readonly:true},
+    {key:'parts',label:'装备部位列表（逗号）',value:String(e.part)},
+    {key:'jobs',label:'职业要求（→soul，逗号）',value:String(e.job)},
+    {key:'eff',label:'关联技能效果编号（→skill_effect）',value:'80001'},
+    {key:'w',label:'权重',value:'100'}],
+    v=>{DB.equip_skill_drop[id]={技能组ID:id,装备部位列表:v.parts,职业要求:v.jobs,
+      基础职业:e.job,转数:e.transfer,分支:e.branch,
+      条目:[{效果备注:(DB.equip_skill_effect[v.eff]?DB.equip_skill_effect[v.eff].套装名:'技能'),
+        权重:Number(v.w),关联技能效果编号:v.eff}]};});
+}
+function cfgItem(){
+  const e=addedEquip,bindId='8'+e.id,rare=RARE_MAP[e.quality][0];
+  DB.item[e.id]={道具ID:e.id,绑定:false,绑定物品ID:bindId,未绑定物品ID:'',道具名字:e.nameKey,
+    道具品质:rare,道具Icon:e.icon,叠加数量:1,页签:JOB[e.job]+'装备',道具出售返还:'1000,'+(e.rl*100)};
+  DB.item[bindId]={道具ID:bindId,绑定:true,绑定物品ID:'',未绑定物品ID:e.id,道具名字:e.nameKey,
+    道具品质:rare,道具Icon:e.icon,叠加数量:1,页签:JOB[e.job]+'装备-绑定装备',道具出售返还:'1000,'+(e.rl*100)};
+  renderTodo();
+}
+function cfgLang(){
+  const e=addedEquip;
+  openCfg('补 文案 · language',[
+    {key:'name',label:'名称中文（'+e.nameKey+'）',value:e.name},
+    {key:'des',label:'描述中文（'+e.desKey+'）',value:'一件'+QUAL_S[e.quality]+'品质的'+PART[e.part]+'。'}],
+    v=>{DB.language[e.nameKey]=v.name;DB.language[e.desKey]=v.des;});
+}
+
+/* ============ 详情：装备配置 ============ */
+let curDetail=null,curDetailTab='equip';
+function switchDetailTab(t){curDetailTab=t;
+  document.getElementById('dtab-equip').classList.toggle('active',t==='equip');
+  document.getElementById('dtab-item').classList.toggle('active',t==='item');
+  document.getElementById('detail-equip').style.display=(t==='equip'?'':'none');
+  document.getElementById('detail-item').style.display=(t==='item'?'':'none');}
+
+function kv(label,value,type,rel){ // type: manual/auto/rel
+  let v;
+  if(rel){
+    let disp=value,sub='';
+    if(rel[0]==='language'){ const zh=DB.language[rel[1]];           // 语言包：直接显示中文，Key 作弱化小字
+      disp = zh!=null ? zh : '<span class="v-bad">（未配）</span>';
+      sub = '<span class="muted" style="font-size:11px;margin-left:6px">'+rel[1]+'</span>'; }
+    v='<span class="rel-link" onclick="openRel(\''+rel[0]+'\',\''+rel[1]+'\',true)">'+disp+'</span>'+sub;
+  }
+  else v='<span class="v'+(type==='auto'?' mono':'')+'">'+value+'</span>';
+  const cls=rel?'manual':(type==='auto'?'auto':'manual');
+  const badge=(type==='auto')?'<span class="badge-auto">自动</span>':'';
+  return '<div class="kv '+cls+'"><span class="k">'+label+'</span>'+v+badge+'</div>';
+}
+function renderDetailEquip(){
+  const e=curDetail;
+  const sec=(title,items)=>'<div class="detail-section"><h4>'+title+'</h4><div class="kv-grid">'+items.join('')+'</div></div>';
+  let html='';
+  html+=sec('基础维度（手填）',[
+    kv('装备部位',PART[e.part],'manual'),kv('基础职业',JOB[e.job],'manual'),
+    kv('转数',e.transfer+'转','manual'),kv('1-2转分支',e.branch,'manual'),
+    kv('品质',QUAL[e.quality],'manual'),kv('几级的装备',e.jiji,'manual')]);
+  html+=sec('标识与文案',[
+    kv('装备ID',e.id,'auto'),kv('种类(SKU)',e.zhonglei,'auto'),kv('备注',e.name,'auto'),
+    kv('名称语言包',e.nameKey,'rel',['language',e.nameKey]),
+    kv('描述语言包',e.desKey,'rel',['language',e.desKey])]);
+  html+=sec('属性 / 等级',[
+    kv('真实等级',e.rl,'auto'),kv('穿戴等级',e.wl,'auto'),
+    kv('初始基础属性库id',e.propLibId,'rel',['equip_proplib',e.propLibId]),
+    kv('初始随机属性库id',e.fixedLib,'rel',['equip_random_proplib',libTrash(e.part)])]);
+  html+=sec('职业限制',[
+    kv('使用职业限制',e.groupId,'rel',['equip_job_group',e.groupId])]);
+  html+=sec('外观',[
+    kv('挂件ID',e.acc,'manual'),kv('装备图标',e.icon,'manual')]);
+  const stItems=[];
+  if(e.suit){stItems.push(kv('初始套装库',e.suitId,'rel',['equip_suit',e.suitId]));stItems.push(kv('图鉴套装ID',e.hankSuit,'auto'));}
+  if(e.effect){stItems.push(kv('特殊属性库ID',e.dropId,'rel',['equip_special_drop',e.dropId]));}
+  if(e.skill){stItems.push(kv('装备技能随机库',e.skillId,'rel',['equip_skill_drop',e.skillId]));}
+  if(stItems.length)html+=sec('套装 / 特效 / 技能',stItems);
+  // 文案（language）· 直接列表预览中文
+  const langRows=[['名称',e.nameKey],['描述',e.desKey]];
+  if(e.suit)langRows.push(['套装名','Equip_SuitName_'+e.suitId]);
+  const langTable='<table class="entry-table">'+
+    '<tr><td class="lab">用途</td><td class="lab">语言包 Key</td><td class="lab">中文预览</td></tr>'+
+    langRows.map(([u,k])=>{const zh=DB.language[k];
+      return '<tr><td class="lab">'+u+'</td>'+
+        '<td class="val"><span class="rel-link" onclick="openRel(\'language\',\''+k+'\',true)">'+k+'</span></td>'+
+        '<td class="val">'+(zh!=null?zh:'<span class="v-bad">（未配）</span>')+'</td></tr>';
+    }).join('')+'</table>';
+  html+='<div class="detail-section"><h4>文案（language · 直接预览中文）</h4>'+langTable+'</div>';
+  html+=sec('服务端 / 战力',[
+    kv('战力类型',1+'（固定值）','manual'),kv('战力计算',6+'（固定值）','manual'),
+    kv('物理/魔法',e.phys===1?'物理':'魔法','auto')]);
+  document.getElementById('detail-equip').innerHTML=html;
+}
+/* 详情：道具配置 */
+function renderDetailItem(){
+  const e=curDetail;const u=DB.item[e.id],b=DB.item['8'+e.id];
+  const col=(it,cls,head)=>{
+    return '<div class="item-col '+cls+'"><h5>'+head+'</h5>'+
+      '<div class="kv-grid" style="grid-template-columns:1fr">'+[
+        kv('道具ID',it.道具ID,'manual'),
+        it.绑定?kv('未绑定物品ID',it.未绑定物品ID,'rel',['item',it.未绑定物品ID])
+               :kv('绑定物品ID',it.绑定物品ID,'rel',['item',it.绑定物品ID]),
+        kv('道具名字',it.道具名字,'rel',['language',it.道具名字]),
+        kv('道具品质',it.道具品质,'manual'),kv('道具Icon',it.道具Icon,'manual'),
+        kv('叠加数量',it.叠加数量,'manual'),kv('所在页签',it.页签,'manual'),
+        kv('出售返还',it.道具出售返还,'rel',['item','1000'])
+      ].join('')+'</div></div>';
+  };
+  document.getElementById('detail-item').innerHTML=
+    '<div class="note">每件装备在 item 表配两条道具：非绑（ItemId=装备ID）+ 绑定（ItemId="8"+装备ID），通过 BindItemId / UnBindItemId 互相指向。</div>'+
+    '<div class="item-cols">'+col(u,'unbind','非绑（可交易）')+col(b,'bind','绑定（绑角色）')+'</div>';
+}
+
+/* ============ 关联抽屉（面包屑堆叠） ============ */
+let relStack=[],relRoot='';
+function activeEquipId(){
+  if(document.getElementById('view-detail').style.display!=='none'&&curDetail)return curDetail.id;
+  if(document.getElementById('view-add').style.display!=='none'&&addedEquip)return addedEquip.id;
+  return curDetail?curDetail.id:'';
+}
+function openRel(table,id,reset){
+  if(reset){relStack=[];relRoot=activeEquipId();}
+  relStack.push({table,id});renderDrawer();
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('drawer').classList.add('show');
+}
+function gotoCrumb(i){relStack=relStack.slice(0,i+1);renderDrawer();}
+function closeDrawer(){document.getElementById('mask').classList.remove('show');document.getElementById('drawer').classList.remove('show');}
+
+const TABLE_LABEL={equip_job_group:'职业组',equip_proplib:'固定属性库',equip_random_proplib:'随机词条库',
+  equip_special_drop:'特效库',equip_special_prop:'特效效果',equip_suit:'套装',
+  equip_skill_drop:'装备技能随机库',equip_skill_effect:'装备技能效果',
+  language:'语言表',item:'道具',prop:'属性主表',skill:'技能',soul:'职业总表'};
+
+function renderDrawer(){
+  // 面包屑
+  let cb='<span class="cb" onclick="closeDrawer()">equip('+relRoot+')</span>';
+  relStack.forEach((s,i)=>{cb+='<span class="sep">›</span><span class="cb '+(i===relStack.length-1?'cur':'')+'" onclick="gotoCrumb('+i+')">'+s.table+'</span>';});
+  document.getElementById('crumbs').innerHTML=cb;
+  // 当前条目
+  const cur=relStack[relStack.length-1];
+  document.getElementById('drawerBody').innerHTML=renderEntry(cur.table,cur.id);
+}
+function statusBadge(kind,n){
+  if(kind==='missing')return '<div class="entry-status es-bad">✘ 悬空外键 · 库中无此条目</div>';
+  if(kind==='abn')return '<div class="entry-status" style="background:#fff7e6;color:#fa8c16">⚠ 数据异常 · '+n+' 项</div>';
+  return '<div class="entry-status es-ok">✔ 存在 · 数据正常</div>';
+}
+function problemBox(probs){return '<div style="background:#fff7e6;border:1px solid #ffd591;border-radius:4px;'+
+  'padding:8px 10px;margin-bottom:12px;font-size:12px;color:#ad6800;line-height:1.7">'+
+  probs.map(p=>'⚠ '+p).join('<br>')+'</div>';}
+function row(lab,val){return '<tr><td class="lab">'+lab+'</td><td class="val">'+val+'</td></tr>';}
+function relLink(table,id,text){
+  let disp=text||id;
+  if(table==='language'&&!text){const zh=DB.language[id];disp=zh!=null?zh:id+'（未配）';} // 语言包链接直接显示中文
+  return '<span class="rel-link" onclick="openRel(\''+table+'\',\''+id+'\',false)">'+disp+'</span>';}
+
+function renderEntry(table,id){
+  const data=DB[table]&&DB[table][id];
+  const head='<div style="font-size:14px;font-weight:600;color:#333;margin-bottom:6px">'+table+' · '+(TABLE_LABEL[table]||'')+' <span class="muted">('+id+')</span></div>';
+  if(!data)return head+statusBadge('missing')+'<div class="empty">该 ID 在 '+table+' 库中不存在——这正是“悬空外键”。配装备时需先在此库补好对应条目。</div>';
+  const ctx=(relStack.length===1&&relRoot)?DB.equip.find(e=>e.id===relRoot):null; // 仅一级关联带装备维度上下文
+  const res=entryProblems(table,id,ctx);
+  const badge=res.probs.length?statusBadge('abn',res.probs.length):statusBadge('ok');
+  const pbox=res.probs.length?problemBox(res.probs):'';
+  let rows='';
+  if(table==='equip_job_group'){
+    rows+=row('组ID',data.组ID)+row('基础职业',JOB[data.基础职业])+row('转数',data.转数+'转')+row('分支',data.分支)+row('说明',data.说明);
+    rows+=row('职业ID（→soul）','<ul class="sub-list">'+data.职业ID.map(jid=>'<li>'+relLink('soul',jid,jid+(DB.soul[jid]?'（'+DB.soul[jid].职业定位+'）':''))+'</li>').join('')+'</ul>');
+  }else if(table==='equip_proplib'){
+    rows+=row('属性库ID',data.属性库ID)+row('备注',data.备注);
+    rows+=row('属性值（→prop）','<ul class="sub-list">'+data.属性值.split(';').map(pair=>{
+      const[pid,val]=pair.split(',');return '<li>'+relLink('prop',pid,(PROP_POOL[pid]||'属性'+pid))+' = '+val+'</li>';}).join('')+'</ul>');
+  }else if(table==='equip_random_proplib'){
+    rows+=row('随机库ID',data.库ID);
+    rows+=row('候选词条','<table class="entry-table" style="margin-top:4px"><tr><td class="lab">属性</td><td class="lab">基准值</td><td class="lab">权重</td></tr>'+
+      data.词条.map(w=>'<tr><td>'+relLink('prop',w.属性id,w.属性名)+'</td><td>'+w.基准值+'</td><td>'+w.权重+'</td></tr>').join('')+'</table>');
+  }else if(table==='equip_special_drop'){
+    rows+=row('特效库ID',data.属性库ID);
+    rows+=row('条目（→special_prop）','<ul class="sub-list">'+data.条目.map(c=>'<li>'+relLink('equip_special_prop',c.属性ID,c.效果备注)+'（权重'+c.权重+'）</li>').join('')+'</ul>');
+  }else if(table==='equip_special_prop'){
+    rows+=row('特效ID',data.特殊效果ID)+row('类型',data.特殊效果类型===1?'技能':data.特殊效果类型);
+    rows+=row('特殊效果（→skill）',relLink('skill',data.特殊效果,data.特殊效果+(DB.skill[data.特殊效果]?'（'+DB.skill[data.特殊效果].备注+'）':'')));
+    rows+=row('效果名称（→language）',relLink('language',data.特殊效果名称))+row('评分',data.评分);
+  }else if(table==='equip_skill_drop'){
+    rows+=row('技能组ID',data.技能组ID)+row('装备部位',data.装备部位列表)+row('职业要求',data.职业要求);
+    rows+=row('候选技能（→skill_effect）','<ul class="sub-list">'+data.条目.map(c=>'<li>'+relLink('equip_skill_effect',c.关联技能效果编号,c.效果备注)+'（权重'+c.权重+'）</li>').join('')+'</ul>');
+  }else if(table==='equip_skill_effect'){
+    rows+=row('技能效果ID',data.装备技能效果ID)+row('触发件数',data.套装数量+' 件套')+row('技能等级',data.技能等级);
+    rows+=row('技能（→skill）',relLink('skill',data.技能ID,data.技能ID+(DB.skill[data.技能ID]?'（'+DB.skill[data.技能ID].备注+'）':'')));
+    rows+=row('套装名称（→language）',relLink('language',data.套装名称))+row('评分',data.评分);
+  }else if(table==='equip_suit'){
+    rows+=row('套装编号',data.套装编号)+row('套装名',data.套装名)+row('套装总数',data.套装总数+' 件套');
+    rows+=row('套装名称（→language）',relLink('language',data.套装名称));
+  }else if(table==='soul'){
+    rows+=row('职业ID',data.职业ID)+row('职业定位',data.职业定位);
+    rows+=row('职业名称（→language）',relLink('language',data.职业名称));
+  }else if(table==='language'){
+    rows+=row('中文',data)+row('语言包Key','<span class="muted">'+id+'</span>');
+  }else if(table==='prop'){
+    rows+=row('属性编号',data.属性编号)+row('中文名',data.属性名)+row('属性类型',data.属性类型);
+    rows+=row('属性名称（→language）',relLink('language',data.属性名称));
+  }else if(table==='skill'){
+    rows+=row('技能id',data.技能id)+row('技能名',data.备注)+row('下游','<span class="muted">buff/damage/param 技能子系统（未展开）</span>');
+  }else if(table==='item'){
+    rows+=row('道具ID',data.道具ID)+row('类型',data.绑定?'绑定':'非绑')+
+      (data.绑定?row('未绑定物品ID',relLink('item',data.未绑定物品ID)):row('绑定物品ID',relLink('item',data.绑定物品ID)))+
+      row('道具名字（→language）',relLink('language',data.道具名字))+
+      row('道具品质',data.道具品质)+row('所在页签',data.页签);
+  }
+  return head+badge+pbox+'<table class="entry-table">'+rows+'</table>';
+}
+
+/* ============ 初始化 ============ */
+buildFilters();buildAdd();applyFilter();
+</script>
+</body>
+</html>
