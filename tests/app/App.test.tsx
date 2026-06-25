@@ -24,7 +24,31 @@ describe("App shell", () => {
   });
 
   it("enters the equip list when roots are loaded", () => {
-    render(<App session={{ isLoaded: true }} />);
+    render(
+      <App
+        session={{
+          isLoaded: true,
+          equipRows: [
+            {
+              primaryKey: "2001001",
+              sourceRow: 5,
+              sourcePath: "equip/equip.xlsx",
+              sheetName: "equip",
+              values: {
+                equipId: "2001001",
+                remark: "战士长剑",
+                part: "weapon",
+                job: "warrior",
+                turn: 1,
+                quality: "rare",
+                level: 20,
+                status: "normal"
+              }
+            }
+          ]
+        }}
+      />
+    );
 
     const equipButton = screen.getByRole("button", { name: "装备" });
     expect(equipButton).toBeEnabled();
@@ -33,6 +57,9 @@ describe("App shell", () => {
     expect(screen.getByRole("button", { name: "language" })).toBeEnabled();
     expect(screen.getByText("已加载 sourceRoot / targetRoot")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "装备列表" })).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "装备列表" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "2001001" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "战士长剑" })).toBeInTheDocument();
     expect(screen.queryByText("等待选择配置根目录")).not.toBeInTheDocument();
   });
 });

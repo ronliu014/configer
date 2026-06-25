@@ -3,10 +3,11 @@ import { ParseHeaderError } from "../core/excel/headerProtocol";
 import { FileAccessError, validateRootPair, type FileAccessAdapter } from "../core/file/fileAccess";
 import type { ConfigModule } from "../core/schema/schemaTypes";
 import { createTableStore, type TableStore } from "../core/table/tableStore";
-import type { TableData } from "../core/table/tableTypes";
+import type { TableData, TableRow } from "../core/table/tableTypes";
 
 export interface SessionState {
   isLoaded: boolean;
+  equipRows?: TableRow[];
 }
 
 export const initialSessionState: SessionState = {
