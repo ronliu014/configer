@@ -5,9 +5,9 @@
 `configer` automates and validates DD game design configuration tables. The MVP centers on equipment (`equip`) while keeping boundaries clear for future domains such as `item`, `role`, skills, drops, and activities.
 
 - `docs/README.md` is the document entry point; follow it before writing product, architecture, or module docs.
-- `docs/40_game_config/` contains game configuration analysis by module; `equip/` is the current MVP knowledge base.
-- `docs/40_game_config/equip/demo/装备配置工具.html` is an interaction and visual reference only; do not copy its mock logic as production rules.
-- `source/table/default_ios/` stores real Excel tables grouped by domain: `equip/`, `item/`, and `language/`.
+- `docs/40_game_config/` contains standardized game configuration rules by module; `equip/` is the current MVP rule set.
+- `docs/90_reference/equip_reference/demo/装备配置工具.html` is an interaction and visual reference only; do not copy its mock logic as production rules.
+- `source/table/default_ios/` stores local sample Excel tables grouped by domain: `equip/`, `item/`, and `language/`. Runtime `sourceRoot` and `targetRoot` are chosen by the user.
 - Add future code by module, for example `src/modules/equip/`, `src/modules/item/`, with shared logic under `src/core/` or `src/shared/`.
 
 ## Build, Test, and Development Commands
@@ -32,7 +32,7 @@ Follow `docs/30_development/documentation_standard.md` for new documentation and
 
 Add tests alongside implementation. For JavaScript, use `*.test.js` or `*.spec.ts`; for Python, use `test_*.py`. Prioritize Excel parsing, ID encoding, foreign-key validation, changelog generation, and write-back safety.
 
-For Excel write-back, verify that formulas, comments, formatting, and non-target sheets are preserved. Only write manual fields and create backups.
+For Excel output, verify that `sourceRoot` is not modified, target files mirror source-relative paths, generated fields are static values, and target overwrites are backed up.
 
 ## Commit & Pull Request Guidelines
 

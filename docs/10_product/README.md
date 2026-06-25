@@ -7,7 +7,7 @@
 ## 当前文档
 
 - [product_design.md](product_design.md)：产品设计总稿，描述用户角色、核心场景、信息架构和主页面。
-- [workflow.md](workflow.md)：策划操作流程，描述加载配表、编辑配置、检查链路、写回表格的闭环。
+- [workflow.md](workflow.md)：策划操作流程，描述选择 source/target、编辑配置、检查链路、输出 target 表格的闭环。
 - [requirements.md](requirements.md)：需求清单，按版本和优先级记录功能点、验收口径和非目标。
 
 ## 编写原则

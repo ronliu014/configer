@@ -1,5 +1,7 @@
 # 13 · 字段配置标准（表 / 字段 Schema）
 
+> **2026-06-25 架构决策更新**：本文对 `formula` 的描述主要记录原 Excel 表中的公式来源。当前有效 schema 来源枚举新增 `generated`，表示由 configer 规则计算并输出静态值的字段。target 输出不依赖保留 Excel 公式；原公式应迁移为生成规则、schema、规则代码和测试样例。
+
 > 把"每张表怎么显示、每个字段怎么生成与校验、哪些字段可关联下钻"抽成一份**声明式配置（schema）**，工具读它来渲染界面 + 执行生成/对账/下钻，而不是给每张表写死一段渲染代码。
 > 本篇是 [11 控件词表](11_对标发行活动配置工具的工具化分析.md) + [12 设计规范](12_装备配置工具设计规范.md) 的**机器可读化**：字段明细仍以 [05](05_字段清单表.md) / [09](09_关联表字段清单.md) 为权威来源，编码规则以 [04](04_ID编码规则速查.md) 为准；本篇只定义"配置的结构"并把这几张表填出来。
 > **本轮范围**：equip、item、equip 的 7 张一级关联表（job_group / proplib / random_proplib / special_drop / suit / rare / skill_drop）、language（下钻终点）。二级表（soul / prop / special_prop / skill_effect / skill）先只在 `ref` 里指向，字段 schema 留后续。

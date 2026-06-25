@@ -2,7 +2,7 @@
 
 状态：Active
 
-本文记录当前本地 `source/table/default_ios/` 下可观察到的样例配表目录。`source/` 是本地资源目录认知，不是工具运行时的固定依赖，也不应提交到远端仓库。
+本文记录当前本地 `source/table/default_ios/` 下可观察到的样例配表目录。仓库内 `source/` 是本地样例资源目录，用于规则分析和测试对比；运行时的 `sourceRoot` 由用户选择，不是仓库固定路径，也不应提交到远端仓库。
 
 ## 目录结构
 
@@ -15,7 +15,7 @@ source/table/default_ios/
   language/
 ```
 
-真实使用时，工具应由用户选择配表根目录，并按模块声明查找所需文件。
+真实使用时，工具应由用户选择 `sourceRoot` 和 `targetRoot`，并按模块声明从 `sourceRoot` 查找所需文件。产物写入 `targetRoot`，并按源文件相对 `sourceRoot` 的路径 1:1 镜像。
 
 ## v1.0 必需表
 
@@ -122,8 +122,11 @@ language_type.xlsx
 
 ## 使用规则
 
-- 不在实现中硬编码 `source/` 路径。
-- 不把备份、changelog、临时导出放入 `source/`。
-- 自动化测试不依赖 `source/` 作为唯一数据来源。
+- 不在实现中硬编码仓库内 `source/` 路径。
+- 不修改运行时 `sourceRoot` 中的源表。
+- 不把备份、changelog、临时导出放入仓库内 `source/` 或运行时 `sourceRoot`。
+- 真实产物必须写入用户选择的 `targetRoot`。
+- `targetRoot` 中的目标文件路径必须按源文件相对 `sourceRoot` 的路径镜像。
+- 自动化测试不依赖仓库内 `source/` 作为唯一数据来源。
 - 需要真实样例测试时，复制到测试 fixture 或临时目录。
 - 文件清单变化时，更新本文和对应模块文档。

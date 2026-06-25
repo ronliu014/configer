@@ -4,6 +4,8 @@
 
 本文总结 `configer` 在进入 MVP 实现计划前已经完成的项目规范化工作，以及下一阶段的工作入口。
 
+> 后续更新：旧版 equip 逆向分析、公式拆解、demo 和评审资料已迁移到 `docs/90_reference/equip_reference/`；当前有效的标准化装备配置说明位于 `docs/40_game_config/equip/`。v1.0 当前采用 `sourceRoot` 只读、`targetRoot` 镜像输出的方案，不再以原地写回源表或保留 Excel 公式作为目标。
+
 ## 已完成事项
 
 ### 1. 仓库贡献指南
@@ -52,7 +54,7 @@ v1.0 不做：
 
 ### 5. 产品样例页面定位
 
-`docs/40_game_config/equip/demo/装备配置工具.html` 已明确为产品同学提供的 UI / 交互参考样例。后续实现应参考其配置中心侧栏、装备列表、两阶段新增、详情双 Tab、关联抽屉、加载配表、写回预览和 changelog 展示。
+`docs/90_reference/equip_reference/demo/装备配置工具.html` 已明确为产品同学提供的 UI / 交互参考样例。后续实现应参考其配置中心侧栏、装备列表、两阶段新增、详情双 Tab、关联抽屉、加载配表、输出预览和 changelog 展示。
 
 该页面中的静态 mock 数据和简化计算逻辑不作为业务规则。真实规则以 `docs/40_game_config/equip/` 下的配置说明为准。
 

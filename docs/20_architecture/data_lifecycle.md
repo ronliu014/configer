@@ -2,13 +2,13 @@
 
 状态：Active
 
-本文定义 `configer` 从加载本地 Excel 到写回文件的完整数据生命周期。所有实现必须以本流程为准，尤其是 baseline、diff、备份、逐单元格写回和 changelog。
+本文定义 `configer` 从加载本地 Excel 到生成目标文件的完整数据生命周期。所有实现必须以本流程为准，尤其是 `sourceRoot` 只读、`targetRoot` 镜像输出、baseline、diff、备份和 changelog。
 
 ## 生命周期总览
 
 ```text
-选择目录
-  -> 加载 workbook
+选择 sourceRoot 和 targetRoot
+  -> 从 sourceRoot 加载 workbook
   -> 解析表头和 schema
   -> 建立内存表与索引
   -> 建立 baseline
@@ -16,18 +16,36 @@
   -> 校验关联
   -> 生成 diff
   -> 预览变更
-  -> 备份原文件
-  -> 写回 Excel
+  -> 生成输出计划
+  -> 备份 targetRoot 中已有目标文件
+  -> 写入 targetRoot 镜像文件
   -> 生成 changelog
 ```
 
-## 选择目录
+## 选择功能根目录
 
-用户通过浏览器选择配表根目录。工具按模块声明查找 `equip`、`item`、`language` 和装备关联表。仓库内 `source/` 只是本地资源目录认知，不能成为工具运行的固定依赖。
+用户通过浏览器选择两个功能根目录：
+
+- `sourceRoot`：输入根目录，只读加载现有配表，用于规则提取、baseline 和测试对比。
+- `targetRoot`：目标根目录，写入 configer 生成的真实产物。
+
+工具按模块声明从 `sourceRoot` 查找 `equip`、`item`、`language` 和装备关联表。仓库内 `source/` 只是本地样例资源目录，不能成为工具运行的固定依赖。
+
+输出路径必须按源文件相对 `sourceRoot` 的路径镜像到 `targetRoot`。例如：
+
+```text
+sourceRoot/equip/equip.xlsx
+  -> targetRoot/equip/equip.xlsx
+sourceRoot/item/item.xlsx
+  -> targetRoot/item/item.xlsx
+```
+
+v1.0 必须阻止 `sourceRoot` 与 `targetRoot` 相同或互相包含，避免产物覆盖源表。
 
 加载结果必须记录：
 
-- 根目录句柄。
+- `sourceRoot` 句柄。
+- `targetRoot` 句柄。
 - 已找到的表。
 - 缺失的表。
 - 解析失败的表。
@@ -35,9 +53,9 @@
 
 ## 加载 workbook
 
-每个 Excel 文件加载后保留原始 workbook 对象。后续写回必须基于原 workbook 修改，不能用内存二维数组重建整个表。
+每个 Excel 文件加载后保留原始 workbook 对象。原始 workbook 是只读输入，不允许直接保存回 `sourceRoot`。
 
-同一个文件可能包含多个 sheet。即使 v1.0 只编辑其中一个 sheet，写回也必须保留其它 sheet。
+同一个文件可能包含多个 sheet。输出时必须按模块输出契约决定保留哪些 sheet、哪些表头和哪些字段。v1.0 对 `equip`、`item`、`language` 输出协议兼容文件，不要求保留 Excel 公式。
 
 ## 解析 schema
 
@@ -52,13 +70,14 @@
 
 字段来源决定回写行为：
 
-| 来源 | 是否可写 |
+| 来源 | 行为 |
 |---|---|
-| `manual` 手填字段 | 可写 |
-| `formula` 公式字段 | 不可写 |
-| `ref` 关联字段 | 不可写，除非 schema 明确标记为手填引用 |
-| `imported` 外部导入字段 | 不可写 |
-| `hidden` / `deprecated` | 不可写 |
+| `manual` 手填字段 | 可编辑，输出为静态值 |
+| `generated` 系统生成字段 | 不可手填，由规则计算后输出为静态值 |
+| `formula` 原 Excel 公式字段 | 仅用于规则追溯，不作为输出运行机制 |
+| `ref` 关联字段 | 默认只读，除非 schema 明确标记为手填引用 |
+| `imported` 外部导入字段 | 默认只读，由来源表或生成规则决定输出 |
+| `hidden` / `deprecated` | 默认不编辑，不作为新增规则依据 |
 
 ## 建立内存表与索引
 
@@ -100,7 +119,7 @@ v1.0 校验范围是引用主键存在性：
 
 ## diff 与预览
 
-写回前，`diffEngine` 对当前数据和 baseline 进行比较，生成变更预览。
+输出前，`diffEngine` 对当前数据和 baseline 进行比较，生成变更预览。
 
 预览粒度：
 
@@ -110,39 +129,54 @@ v1.0 校验范围是引用主键存在性：
 - 字段 key 和显示名。
 - 旧值与新值。
 
-用户取消写回时，diff 仍保留在内存中，不落盘，不生成 changelog。
+用户取消输出时，diff 仍保留在内存中，不落盘，不生成 changelog。
+
+## 输出计划
+
+写入文件前，`core` 根据 diff、schema 和模块输出契约生成输出计划。
+
+输出计划必须包含：
+
+- 源文件相对 `sourceRoot` 的路径。
+- 目标文件相对 `targetRoot` 的路径。
+- 输出 sheet。
+- 输出字段顺序。
+- 每个字段的来源：`manual`、`generated`、`ref` 等。
+- 新增、修改、删除行的处理方式。
 
 ## 备份
 
-备份必须发生在写回之前。备份失败时，写回必须停止。
+备份必须发生在覆盖 `targetRoot` 已有目标文件之前。备份失败时，输出必须停止。
 
-备份文件名应包含原文件名和时间戳，方便回滚。备份目录应与未来输出目录或配表目录策略保持一致，不能覆盖源文件。
+备份文件名应包含原文件名和时间戳，方便回滚。备份目录应位于 `targetRoot` 或其旁路备份区，不能写入 `sourceRoot`。
 
-## 写回
+## 输出
 
-写回由 `core` 统一执行。业务模块不得绕过 `core` 直接写文件。
+输出由 `core` 统一执行。业务模块不得绕过 `core` 直接写文件。
 
-写回步骤：
+输出步骤：
 
-1. 根据 diff 过滤出允许写回的表。
-2. 根据 schema 过滤出允许写回的字段。
-3. 映射到原 workbook 的 sheet、行、列。
-4. 逐单元格写入新值。
-5. 新增行只填可写字段，并按原表策略处理公式列。
-6. 保存 workbook。
+1. 根据 diff 过滤出允许输出的表。
+2. 根据 schema 和输出契约过滤字段。
+3. 用 `sourceRoot` 中的表头和 schema 确定输出 sheet、字段顺序和类型。
+4. 写入 `manual` 字段的当前值。
+5. 写入 `generated` 字段的规则计算值。
+6. 不把原 Excel 公式作为输出依赖。
+7. 保存到 `targetRoot` 镜像相对路径。
 
-v1.0 只允许写回 `equip`、`item`、`language`。装备关联表加载为只读，不能出现在写回集合中。
+v1.0 只输出 `equip`、`item`、`language`。装备关联表加载为只读，不能出现在输出变更集合中。
 
 ## changelog
 
-写回成功后生成 changelog。changelog 与变更预览使用同一份 diff 数据，避免“预览看到的”和“记录写出的”不一致。
+输出成功后生成 changelog。changelog 与变更预览使用同一份 diff 数据，避免“预览看到的”和“记录写出的”不一致。
 
 changelog 应包含：
 
-- 写回时间。
+- 输出时间。
 - 涉及表。
 - 新增、修改、删除统计。
 - 每条变更的行主键、字段、旧值、新值。
+- 输出文件位置。
 - 备份文件位置。
 
 ## 失败恢复
@@ -151,7 +185,8 @@ changelog 应包含：
 |---|---|
 | 加载失败 | 不进入可编辑状态 |
 | 编辑失败 | 保持原当前数据，提示字段错误 |
-| diff 失败 | 阻止写回 |
-| 备份失败 | 阻止写回 |
-| 写回失败 | 保留内存变更，提示失败位置，用户可重试或恢复备份 |
-| changelog 失败 | 标记写回已完成但记录失败，提示用户人工记录 |
+| diff 失败 | 阻止输出 |
+| 输出计划失败 | 阻止输出 |
+| 备份失败 | 阻止覆盖目标文件 |
+| 输出失败 | 保留内存变更，提示失败位置，用户可重试 |
+| changelog 失败 | 标记输出已完成但记录失败，提示用户人工记录 |

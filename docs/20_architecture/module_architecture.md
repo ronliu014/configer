@@ -24,9 +24,9 @@ src/
 职责：
 
 - 渲染配置中心侧边栏和顶部状态栏。
-- 管理“未加载 / 已加载 / 待写回 / 已写回”等全局状态。
+- 管理“未加载 / 已加载 / 待输出 / 已输出”等全局状态。
 - 调用模块注册信息生成入口。
-- 触发加载、写回、变更预览等平台动作。
+- 触发加载、输出、变更预览等平台动作。
 
 限制：
 
@@ -42,14 +42,14 @@ src/
 
 | 能力 | 说明 |
 |---|---|
-| `fileAccess` | 目录选择、权限恢复、文件读取和写入 |
+| `fileAccess` | source/target 目录选择、权限恢复、文件读取和目标写入 |
 | `excelParser` | 解析 workbook、sheet、4 行表头协议和源行号 |
 | `schemaRegistry` | 合并表头 schema 与模块显式 schema |
 | `tableStore` | 管理内存表数据、主键索引、baseline |
 | `validationEngine` | 执行引用存在性校验和后续链路对账 |
 | `diffEngine` | 计算当前数据相对 baseline 的差异 |
-| `writeBackEngine` | 逐单元格写回允许修改的字段 |
-| `backupService` | 写回前复制原文件 |
+| `targetWriter` | 按输出契约生成 target 目标文件 |
+| `backupService` | 覆盖 target 目标文件前备份 |
 | `changelogService` | 生成结构化变更记录 |
 
 `core` 不依赖任何业务模块。业务差异通过 schema、规则配置和模块注册信息传入。
@@ -88,7 +88,7 @@ modules/equip/
 - 声明模块入口、导航名称、依赖表和可写表。
 - 维护本模块 schema、控件映射和业务规则。
 - 提供列表、详情、编辑等页面。
-- 调用 `core` 执行加载、校验、diff 和写回。
+- 调用 `core` 执行加载、校验、diff 和输出。
 
 限制：
 
@@ -106,12 +106,12 @@ type ConfigModule = {
   title: string;
   group: "business" | "common";
   tables: TableRequirement[];
-  writableTables: string[];
+  targetTables: string[];
   routes: ModuleRoute[];
 };
 ```
 
-`equip` v1.0 的 `writableTables` 只能包含 `equip`、`item`、`language`。装备关联表可以出现在 `tables` 中，但必须标记为只读。
+`equip` v1.0 的 `targetTables` 只能包含 `equip`、`item`、`language`。装备关联表可以出现在 `tables` 中，但必须标记为只读。
 
 ## 依赖方向
 
@@ -134,11 +134,11 @@ core -> no modules
 
 ## v1.0 模块边界
 
-| 模块 | v1.0 角色 | 写回 |
+| 模块 | v1.0 角色 | 输出 |
 |---|---|---|
 | `equip` | 主业务配置线 | 是 |
 | `item` | 装备配套公共表 | 是 |
 | `language` | 文案公共表 | 是 |
 | 装备关联表 | 只读依赖表 | 否 |
 
-后续 v1.1 如果开放关联表编辑，必须先把关联表能力纳入明确模块或 `equip` 子域，并同步更新 `writableTables` 和回写测试。
+后续 v1.1 如果开放关联表编辑，必须先把关联表能力纳入明确模块或 `equip` 子域，并同步更新 `targetTables` 和输出测试。

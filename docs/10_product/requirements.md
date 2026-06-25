@@ -8,7 +8,7 @@
 
 | ID | 优先级 | 需求 | 验收 |
 |---|---|---|---|
-| REQ-LOAD-001 | Must | 用户可以选择本地配表根目录。 | 未选择目录时不进入业务列表；选择后显示加载状态。 |
+| REQ-LOAD-001 | Must | 用户可以选择本地 `sourceRoot` 和 `targetRoot`。 | 未选择目录时不进入业务列表；选择后显示加载状态。 |
 | REQ-LOAD-002 | Must | 加载 `equip`、`item`、`language` 和装备关联表。 | 加载结果显示成功表、缺失表和异常表。 |
 | REQ-LOAD-003 | Must | 加载后建立本次会话 baseline。 | 变更预览能按 baseline 展示差异。 |
 | REQ-LOAD-004 | Should | 记住最近一次目录句柄。 | 刷新后可提示恢复上次目录。 |
@@ -57,17 +57,19 @@
 | REQ-REF-002 | Must | 校验关联主键是否存在。 | 存在显示正常，缺失显示悬空异常。 |
 | REQ-REF-003 | Must | v1.0 不允许编辑关联表。 | 抽屉内没有保存、删除或补建操作。 |
 | REQ-REF-004 | Should | 支持完整命中、缺失、异常三态对账。 | 列表可按配置状态筛选。 |
-| REQ-REF-005 | Should | 支持关联表缺失补建。 | 缺失项可进入补建流程并写回关联表。 |
+| REQ-REF-005 | Should | 支持关联表缺失补建。 | 缺失项可进入补建流程并输出关联表。 |
 
-## 写回与记录
+## target 输出与记录
 
 | ID | 优先级 | 需求 | 验收 |
 |---|---|---|---|
-| REQ-WRITE-001 | Must | 写回前展示变更预览。 | 用户能看到表、行、字段、旧值和新值。 |
-| REQ-WRITE-002 | Must | 写回前生成备份。 | 备份失败时阻止写回。 |
-| REQ-WRITE-003 | Must | v1.0 只写回 `equip`、`item`、`language`。 | 关联表不会被修改。 |
-| REQ-WRITE-004 | Must | 只写允许修改的手填字段。 | 公式、格式、批注和非目标 sheet 保留。 |
-| REQ-WRITE-005 | Must | 写回后生成 changelog。 | changelog 内容与变更预览一致。 |
+| REQ-TARGET-001 | Must | 输出前展示变更预览。 | 用户能看到表、行、字段、旧值和新值。 |
+| REQ-TARGET-002 | Must | 覆盖 target 已有目标文件前生成备份。 | 备份失败时阻止输出。 |
+| REQ-TARGET-003 | Must | v1.0 只输出 `equip`、`item`、`language`。 | 关联表不会被修改。 |
+| REQ-TARGET-004 | Must | target 文件按 source 相对路径 1:1 镜像生成。 | 用户无需逐一配置目标文件路径。 |
+| REQ-TARGET-005 | Must | `sourceRoot` 保持只读。 | 输出后 source 文件未变化。 |
+| REQ-TARGET-006 | Must | `generated` 字段写入 configer 计算后的静态值。 | target 输出不依赖 Excel 公式。 |
+| REQ-TARGET-007 | Must | 输出后生成 changelog。 | changelog 内容与变更预览一致。 |
 
 ## 非目标
 

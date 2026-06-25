@@ -28,21 +28,22 @@
 |---|---|
 | 当前阶段 | 阶段 0：脚手架与开发命令 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `17ffaec Add equip MVP implementation plan` |
+| 最近完成阶段提交 | `7d8f2c0 Standardize equip source target documentation` |
 | 下一步 | 创建 Vite + React + TypeScript 脚手架，并建立 `npm run dev`、`npm run build`、`npm test` |
 | 当前阻塞 | 无 |
-| 注意事项 | 阶段 1 Excel 写回技术验证不得跳过 |
+| 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
+| 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
 
 ## 阶段进度
 
 | 阶段 | 名称 | 状态 | 目标提交 | 验证证据 | 备注 |
 |---|---|---|---|---|---|
 | 0 | 脚手架与开发命令 | `Not Started` | `Scaffold local web app` | 未执行 | 先建立 Vite + React + TypeScript、Vitest、基础目录 |
-| 1 | Excel 写回技术验证 | `Not Started` | `Verify Excel writeback safety` | 未执行 | 必须验证公式、格式、批注、多 sheet 保留；失败则先调整技术方案 |
+| 1 | Excel 输出契约技术验证 | `Not Started` | `Verify Excel target output contract` | 未执行 | 必须验证 source 只读、target 镜像路径、4 行表头、generated 静态值；失败则先调整技术方案 |
 | 2 | 核心类型与 4 行表头解析 | `Not Started` | `Add Excel header parser` | 未执行 | 解析 4 行表头，记录 `srcCol` / `srcName` |
 | 3 | schema registry 与模块注册 | `Not Started` | `Add schema and module registry` | 未执行 | 注册 `equip`、`item`、`language`，关联表只读 |
 | 4 | table store、baseline 与索引 | `Not Started` | `Add table store and baseline` | 未执行 | baseline 不得被编辑污染 |
-| 5 | 配表目录加载 | `Not Started` | `Add local table loading session` | 未执行 | 不硬编码 `source/` 路径 |
+| 5 | source / target 会话加载 | `Not Started` | `Add local table loading session` | 未执行 | 不硬编码仓库内 `source/` 路径 |
 | 6 | equip / item / language 最小 schema | `Not Started` | `Add v1 equip schemas` | 未执行 | 字段使用稳定逻辑 key |
 | 7 | 配置中心外壳与导航 | `Not Started` | `Add configuration center shell` | 未执行 | 参考产品样例页面，不复制 mock 逻辑 |
 | 8 | 装备列表 | `Not Started` | `Add equip list page` | 未执行 | 搜索、筛选、分页，大表查找用 `Map` / `Set` |
@@ -50,8 +51,8 @@
 | 10 | item 与 language 维护 | `Not Started` | `Add item and language editing` | 未执行 | 支持配套 item 和文案编辑 |
 | 11 | 只读关联抽屉与存在性校验 | `Not Started` | `Add read-only relation drawer` | 未执行 | 关联表只读，不补建 |
 | 12 | diff、变更预览和 changelog | `Not Started` | `Add diff and changelog generation` | 未执行 | 预览和 changelog 使用同一份 diff |
-| 13 | 备份与写回 | `Not Started` | `Add safe Excel writeback` | 未执行 | v1.0 只写 `equip`、`item`、`language` |
-| 14 | 端到端验收 | `Not Started` | `Validate equip v1 MVP workflow` | 未执行 | `npm test`、`npm run build` 和写回安全验证必须通过 |
+| 13 | target 输出与备份 | `Not Started` | `Add safe target output` | 未执行 | v1.0 只输出 `equip`、`item`、`language` |
+| 14 | 端到端验收 | `Not Started` | `Validate equip v1 MVP workflow` | 未执行 | `npm test`、`npm run build` 和输出契约验证必须通过 |
 
 ## 阶段记录模板
 
@@ -92,10 +93,38 @@
   - `git diff --check`：通过
 - 结果：
   - 阶段性总结和 MVP 实现计划已建立。
-  - 明确阶段 1 Excel 写回技术验证不得跳过。
+  - 明确阶段 1 Excel 输出契约技术验证不得跳过。
 - 遗留风险：
   - 尚未开始代码实现。
-  - 尚未验证 SheetJS 是否满足写回保护要求。
+  - 尚未验证 SheetJS 是否满足 source 读取与 target 输出契约。
+- 下一步：
+  - 阶段 0：脚手架与开发命令。
+
+### 规划调整：source / target 输出契约与 equip 标准目录
+
+- 状态：Done
+- 提交：`7d8f2c0 Standardize equip source target documentation`
+- 时间：2026-06-25
+- 变更范围：
+  - `docs/40_game_config/equip/`
+  - `docs/90_reference/equip_reference/`
+  - `docs/20_architecture/`
+  - `docs/30_development/`
+  - `docs/10_product/`
+  - `docs/50_modules/equip/`
+- 验证：
+  - `rg -n "写[回]|配表目[录]|保留公[式]|公式列仍是公[式]" docs/10_product docs/20_architecture docs/30_development docs/40_game_config docs/50_modules docs/README.md AGENTS.md`
+  - `rg -n "TB[D]|TO[D]O|待[定]|以后再[写]|implement late[r]|fill in detail[s]" docs`
+  - `git diff --check`
+  - `git ls-files source`
+- 结果：
+  - 明确 `sourceRoot` 只读，`targetRoot` 按 source 相对路径 1:1 镜像输出。
+  - 明确原 Excel 公式只作为规则提取来源，target 输出写 configer 计算后的静态值。
+  - 将旧版 equip 逆向分析、公式拆解、demo 和历史设计资料迁移到 `docs/90_reference/equip_reference/`。
+  - 按 `docs/40_game_config/_template/` 重建标准化 `docs/40_game_config/equip/`。
+  - current docs 旧输出语义扫描无命中；占位词扫描无命中；`git diff --check` 无空白错误；`source/` 未被 Git 跟踪。
+- 遗留风险：
+  - 标准化字段字典仍需在阶段 6 结合真实源表进一步细化到准确 `srcCol`。
 - 下一步：
   - 阶段 0：脚手架与开发命令。
 

@@ -6,9 +6,10 @@
 
 ## 当前文档
 
-- [excel_table_protocol.md](excel_table_protocol.md)：Excel 4 行表头协议、`A/N/S/C` 导出标记、公式列保护规则。
-- [source_tables.md](source_tables.md)：`source/table/default_ios/` 下样例表清单和用途。
-- [external_workflow.md](external_workflow.md)：SVN、ExcelMerge、excel-batch-commit 等外部流程说明。
+- [excel_table_protocol.md](excel_table_protocol.md)：Excel 4 行表头协议、`A/N/S/C` 导出标记、source/target 目录协议和输出契约。
+- [source_tables.md](source_tables.md)：仓库内 `source/table/default_ios/` 下样例表清单和用途。
+- [external_workflow.md](external_workflow.md)：SVN、ExcelMerge、excel-batch-commit 与 source/target 输出流程说明。
+- [equip_reference](equip_reference/README.md)：旧版 equip 逆向分析、公式拆解、demo、评审和历史设计资料。
 
 ## 编写原则
 

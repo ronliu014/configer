@@ -10,7 +10,7 @@
 
 后续执行建议：
 
-- 阶段 0 到阶段 1 必须先做，尤其是 Excel 写回技术验证。
+- 阶段 0 到阶段 1 必须先做，尤其是 Excel 输出契约技术验证。
 - 每个阶段只处理该阶段声明的文件范围。
 - 每个阶段完成后运行相关测试，更新 [task_board_v1.md](task_board_v1.md)，然后提交。
 - 如果发现计划与真实配表或技术验证冲突，先更新本文和对应架构文档，再继续编码。
@@ -20,14 +20,14 @@
 实现一个本地 Web 版配置中心，完成 `equip` 装备配置 v1.0 闭环：
 
 ```text
-选择配表目录
+选择 sourceRoot 和 targetRoot
   -> 加载 equip / item / language / 装备关联表
   -> 展示装备列表
   -> 新增 / 编辑 / 删除装备
   -> 维护配套 item 和 language
   -> 只读查看关联表并检查主键存在性
   -> 生成变更预览
-  -> 备份并写回 equip / item / language
+  -> 输出 equip / item / language 到 targetRoot 镜像路径
   -> 生成 changelog
 ```
 
@@ -37,9 +37,9 @@
 |---|---|
 | 应用形态 | 本地 Web 单页应用 |
 | 推荐脚手架 | Vite + React + TypeScript |
-| Excel 处理 | 先验证 SheetJS 是否满足写回保护；若不满足，切换到能保留 workbook 信息的库或组合方案 |
+| Excel 处理 | 先验证 SheetJS 是否满足 source 读取和 target 输出契约；输出不依赖保留原公式 |
 | 测试 | Vitest + jsdom；关键 UI 流程后续接 Playwright |
-| 文件访问 | File System Access API，通过 adapter 抽象，测试中使用内存实现 |
+| 文件访问 | File System Access API，用户选择 `sourceRoot` 与 `targetRoot`，测试中使用内存实现 |
 | 状态 | v1.0 使用 React state + 模块 service，暂不引入复杂状态库 |
 
 ## 版本边界
@@ -48,8 +48,8 @@ v1.0 只做：
 
 - `equip`、`item`、`language` 三类表增删改。
 - 装备关联表只读加载、查看和主键存在性校验。
-- 写回 `equip`、`item`、`language`。
-- 写回前备份，写回后生成 changelog。
+- 输出 `equip`、`item`、`language` 到 `targetRoot`。
+- 覆盖 target 目标文件前备份，输出后生成 changelog。
 
 v1.0 不做：
 
@@ -72,7 +72,7 @@ src/
     excel/
       headerProtocol.ts
       workbookReader.ts
-      workbookWriter.ts
+      targetWriter.ts
     schema/
       schemaTypes.ts
       schemaRegistry.ts
@@ -136,35 +136,37 @@ tests/
 Scaffold local web app
 ```
 
-## 阶段 1：Excel 写回技术验证
+## 阶段 1：Excel 输出契约技术验证
 
-目标：在正式实现业务前，验证 Excel 库能否满足写回红线。
+目标：在正式实现业务前，验证 Excel 库能否满足 source 读取和 target 输出契约。
 
 任务：
 
 1. 在 `tests/fixtures/` 准备一个最小 workbook fixture，包含：
    - 4 行表头。
-   - 1 个公式列。
+   - 1 个原公式列。
    - 1 个手填列。
-   - 1 条批注。
+   - 1 个 generated 字段预期值。
    - 2 个 sheet。
-2. 编写 `tests/core/excel/workbookWriter.test.ts`。
-3. 验证逐单元格写入手填字段后：
-   - 公式仍是公式。
-   - 非目标 sheet 仍存在。
-   - 未修改单元格未变化。
-   - 批注和格式不丢失。
-4. 如果 SheetJS 无法满足保护要求，记录结论并替换写回方案，不继续推进业务写回。
+2. 编写 `tests/core/excel/targetWriter.test.ts`。
+3. 验证从 `sourceRoot` 读取后输出到 `targetRoot`：
+   - `sourceRoot` 文件未被修改。
+   - target 文件按 source 相对路径镜像生成。
+   - 4 行表头、sheet 名称、字段顺序和导出标记保留。
+   - `manual` 字段写用户编辑后的静态值。
+   - `generated` 字段写规则计算后的静态值。
+   - 输出不依赖原 Excel 公式。
+4. 如果 SheetJS 无法满足输出契约，记录结论并替换生成方案，不继续推进业务输出。
 
 验收：
 
-- 写回验证测试通过。
+- 输出契约验证测试通过。
 - 如果验证失败，必须先更新 `docs/20_architecture/technical_design.md` 和本文，再继续实现。
 
 提交建议：
 
 ```text
-Verify Excel writeback safety
+Verify Excel target output contract
 ```
 
 ## 阶段 2：核心类型与 4 行表头解析
@@ -233,8 +235,8 @@ Add Excel header parser
 验收：
 
 - schema 合并后以稳定 `key` 查询字段。
-- `equip` v1.0 的 `writableTables` 仅包含 `equip`、`item`、`language`。
-- 关联表不能进入写回集合。
+- `equip` v1.0 的 `targetTables` 仅包含 `equip`、`item`、`language`。
+- 关联表不能进入 target 输出变更集合。
 
 提交建议：
 
@@ -273,9 +275,9 @@ Add schema and module registry
 Add table store and baseline
 ```
 
-## 阶段 5：配表目录加载
+## 阶段 5：source / target 会话加载
 
-目标：完成用户选择目录后的加载会话，不依赖仓库内 `source/` 固定路径。
+目标：完成用户选择 `sourceRoot` 和 `targetRoot` 后的加载会话，不依赖仓库内 `source/` 固定路径。
 
 文件：
 
@@ -290,19 +292,21 @@ Add table store and baseline
 1. 抽象 `FileAccessAdapter`：
    - 浏览器实现使用 File System Access API。
    - 测试实现使用内存文件。
-2. 实现按模块表需求查找文件。
-3. 加载 `equip`、`item`、`language` 和装备关联表。
-4. 记录加载结果：
+2. 实现按模块表需求从 `sourceRoot` 查找文件。
+3. 校验 `sourceRoot` 与 `targetRoot` 不能相同或互相包含。
+4. 加载 `equip`、`item`、`language` 和装备关联表。
+5. 记录加载结果：
    - 成功表。
    - 缺失表。
    - 解析失败表。
-5. 建立 baseline。
+6. 建立 baseline。
 
 验收：
 
 - 表缺失时页面可显示具体缺失表。
-- 未选择目录时业务入口不可用。
+- 未选择 source 或 target 目录时业务入口不可用。
 - 加载逻辑不使用硬编码 `source/` 路径。
+- 输出逻辑按 source 相对路径映射 target 路径。
 
 提交建议：
 
@@ -324,19 +328,21 @@ Add local table loading session
 
 任务：
 
-1. 依据 `docs/40_game_config/equip/05_字段清单表.md` 提取 v1.0 必需字段。
-2. 依据 `docs/40_game_config/equip/09_关联表字段清单.md` 声明关联表主键。
+1. 依据 `docs/40_game_config/equip/02_field_dictionary.md` 提取 v1.0 必需字段。
+2. 依据 `docs/40_game_config/equip/04_relations.md` 声明关联表主键。
 3. 标记字段来源：
    - 手填字段为 `manual`。
-   - 公式字段为 `formula`。
+   - 由 configer 计算的字段为 `generated`。
+   - 原 Excel 公式字段为 `formula`，仅用于规则追溯。
    - 关联字段为 `ref`。
-4. 标记写回权限。
+4. 标记编辑权限和 target 输出策略。
 5. 为 language 字段建立 `key -> Zhs` 显示规则。
 
 验收：
 
 - `equip` 手填字段可编辑。
-- 公式字段只读。
+- generated 字段只读，由规则计算后输出静态值。
+- formula 字段不得作为 target 输出运行机制。
 - 关联字段可下钻。
 - `item` 和 `language` 在 v1.0 可写。
 
@@ -424,7 +430,7 @@ Add equip list page
 
 任务：
 
-1. 依据 `docs/40_game_config/equip/04_ID编码规则速查.md` 实现 v1.0 必需生成预览。
+1. 依据 `docs/40_game_config/equip/03_id_rules.md` 实现 v1.0 必需生成预览，必要时参考 `docs/90_reference/equip_reference/04_ID编码规则速查.md`。
 2. 新增装备时检查装备 ID 冲突。
 3. 编辑装备时允许保存自身 ID。
 4. 编辑装备更新原行，不新增重复行。
@@ -512,7 +518,7 @@ Add read-only relation drawer
 
 ## 阶段 12：diff、变更预览和 changelog
 
-目标：实现写回前变更预览和写回后 changelog。
+目标：实现输出前变更预览和输出后 changelog。
 
 文件：
 
@@ -528,13 +534,13 @@ Add read-only relation drawer
 2. 识别新增、修改、删除。
 3. 输出表名、行主键、字段 key、字段显示名、旧值、新值。
 4. 变更预览和 changelog 使用同一份 diff。
-5. 用户取消写回时不落盘、不生成 changelog。
+5. 用户取消输出时不落盘、不生成 changelog。
 
 验收：
 
 - diff 能覆盖 equip、item、language。
 - changelog 与预览内容一致。
-- 关联表不出现在 v1.0 写回 diff 中。
+- 关联表不出现在 v1.0 target 输出 diff 中。
 
 提交建议：
 
@@ -542,40 +548,42 @@ Add read-only relation drawer
 Add diff and changelog generation
 ```
 
-## 阶段 13：备份与写回
+## 阶段 13：target 输出与备份
 
-目标：完成 `equip`、`item`、`language` 三表安全写回。
+目标：完成 `equip`、`item`、`language` 三表 target 镜像输出。
 
 文件：
 
-- `src/core/excel/workbookWriter.ts`
+- `src/core/excel/targetWriter.ts`
 - `src/core/file/backupService.ts`
-- `src/core/file/writeSession.ts`
-- `tests/core/excel/workbookWriter.test.ts`
+- `src/core/file/outputSession.ts`
+- `tests/core/excel/targetWriter.test.ts`
 - `tests/core/file/backupService.test.ts`
 
 任务：
 
-1. 写回前生成备份。
-2. 根据 diff 过滤允许写回表。
-3. 根据 schema 过滤允许写回字段。
-4. 映射到原 workbook 的 sheet、行、列。
-5. 逐单元格写入手填字段。
-6. 保存 workbook。
-7. 写回失败时保留内存变更并返回失败位置。
+1. 覆盖 target 已有目标文件前生成备份。
+2. 根据 diff 过滤允许输出表。
+3. 根据 schema 过滤允许输出字段。
+4. 将 source 相对路径映射到 target 相对路径。
+5. 写入 `manual` 字段当前值。
+6. 写入 `generated` 字段规则计算值。
+7. 保存 target workbook。
+8. 输出失败时保留内存变更并返回失败位置。
 
 验收：
 
-- v1.0 只写 `equip`、`item`、`language`。
-- 公式列仍是公式。
-- 非目标 sheet 保留。
-- 备份失败时阻止写回。
-- 写回成功后生成 changelog。
+- v1.0 只输出 `equip`、`item`、`language`。
+- `sourceRoot` 文件未被修改。
+- target 文件按 source 相对路径镜像生成。
+- generated 字段输出静态结果值。
+- 备份失败时阻止覆盖 target 已有目标文件。
+- 输出成功后生成 changelog。
 
 提交建议：
 
 ```text
-Add safe Excel writeback
+Add safe target output
 ```
 
 ## 阶段 14：端到端验收
@@ -589,15 +597,15 @@ Add safe Excel writeback
 3. 启动本地页面。
 4. 验证流程：
    - 未加载状态。
-   - 选择配表目录。
+   - 选择 `sourceRoot` 和 `targetRoot`。
    - 进入装备列表。
    - 新增装备。
    - 编辑配套 item。
    - 编辑 language。
    - 查看关联抽屉。
    - 打开变更预览。
-   - 取消写回。
-   - 执行写回到临时目录。
+   - 取消输出。
+   - 执行输出到临时 target 目录。
    - 检查备份和 changelog。
 5. 记录未覆盖风险。
 
@@ -605,7 +613,7 @@ Add safe Excel writeback
 
 - `npm test` 通过。
 - `npm run build` 通过。
-- Excel 写回安全测试通过。
+- Excel 输出契约测试通过。
 - 手工验收记录写入提交说明或开发日志。
 
 提交建议：
@@ -617,20 +625,20 @@ Validate equip v1 MVP workflow
 ## 推荐执行顺序
 
 1. 阶段 0：脚手架与开发命令。
-2. 阶段 1：Excel 写回技术验证。
+2. 阶段 1：Excel 输出契约技术验证。
 3. 阶段 2 到阶段 5：核心加载基建。
 4. 阶段 6 到阶段 11：业务页面和校验。
-5. 阶段 12 到阶段 13：diff、changelog、写回。
+5. 阶段 12 到阶段 13：diff、changelog、target 输出。
 6. 阶段 14：端到端验收。
 
-不得跳过阶段 1。若写回技术验证失败，不应继续开发会真实写文件的功能。
+不得跳过阶段 1。若输出契约技术验证失败，不应继续开发会真实写 target 文件的功能。
 
 ## 开发前检查
 
 开始写代码前必须确认：
 
 - 已阅读 `docs/README.md` 推荐阅读顺序。
-- 已阅读 `docs/40_game_config/equip/15_工具开发实施指南.md`。
+- 已阅读 `docs/40_game_config/equip/README.md` 及 01-09 标准文档。
 - 已阅读 `docs/90_reference/excel_table_protocol.md`。
 - 当前工作区没有未确认的用户改动。
 - `source/` 不纳入提交。
@@ -639,10 +647,11 @@ Validate equip v1 MVP workflow
 
 v1.0 完成时必须满足：
 
-- 用户能选择配表目录并加载装备相关表。
+- 用户能选择 source 目录和 target 目录并加载装备相关表。
 - 用户能增删改装备、配套 item 和 language。
 - 关联表只读展示，缺失主键显示悬空异常。
-- 写回前有变更预览和备份。
-- 写回后公式、格式、批注和非目标 sheet 不丢失。
-- 写回后生成 changelog。
+- 输出前有变更预览，覆盖 target 已有目标文件前有备份。
+- `sourceRoot` 不被修改，target 文件按 source 相对路径镜像生成。
+- 公式逻辑已迁移为 generated 规则，target 输出写静态结果值。
+- 输出后生成 changelog。
 - `npm test` 和 `npm run build` 通过。
