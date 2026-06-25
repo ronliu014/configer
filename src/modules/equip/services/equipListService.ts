@@ -1,4 +1,4 @@
-import type { TableCellValue, TableRow } from "../../../core/table/tableTypes";
+import type { TableCellValue, TablePrimaryKey, TableRow } from "../../../core/table/tableTypes";
 
 export interface EquipListItem {
   equipId: string;
@@ -9,6 +9,7 @@ export interface EquipListItem {
   quality: string;
   level: string;
   status: string;
+  primaryKey: TablePrimaryKey;
 }
 
 export interface EquipListFilters {
@@ -70,7 +71,8 @@ function mapEquipListItem(row: TableRow): EquipListItem {
     turn: cellToText(row.values.turn),
     quality: cellToText(row.values.quality),
     level: cellToText(row.values.level),
-    status: cellToText(row.values.status)
+    status: cellToText(row.values.status),
+    primaryKey: row.primaryKey
   };
 }
 

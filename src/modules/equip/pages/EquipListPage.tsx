@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import type { TableRow } from "../../../core/table/tableTypes";
+import type { TablePrimaryKey, TableRow } from "../../../core/table/tableTypes";
 import { EquipQualityTag } from "../components/EquipQualityTag";
 import {
   createEquipListView,
@@ -8,6 +8,8 @@ import {
 } from "../services/equipListService";
 
 interface EquipListPageProps {
+  onCreate?: () => void;
+  onEdit?: (primaryKey: TablePrimaryKey) => void;
   pageSize?: number;
   rows: TableRow[];
 }
@@ -19,7 +21,7 @@ const defaultFilters: Required<EquipListFilters> = {
   turn: ""
 };
 
-export function EquipListPage({ pageSize = 20, rows }: EquipListPageProps) {
+export function EquipListPage({ onCreate, onEdit, pageSize = 20, rows }: EquipListPageProps) {
   const [searchText, setSearchText] = useState("");
   const [filters, setFilters] = useState<Required<EquipListFilters>>(defaultFilters);
   const [page, setPage] = useState(1);
@@ -51,8 +53,15 @@ export function EquipListPage({ pageSize = 20, rows }: EquipListPageProps) {
   return (
     <section className="module-workspace" aria-label="装备配置">
       <div className="page-heading">
-        <p className="eyebrow">业务配置</p>
-        <h2>装备列表</h2>
+        <div>
+          <p className="eyebrow">业务配置</p>
+          <h2>装备列表</h2>
+        </div>
+        {onCreate ? (
+          <button className="primary-button" onClick={onCreate} type="button">
+            新增
+          </button>
+        ) : null}
       </div>
 
       <div className="list-toolbar">
@@ -110,11 +119,12 @@ export function EquipListPage({ pageSize = 20, rows }: EquipListPageProps) {
               <th scope="col">品质</th>
               <th scope="col">等级</th>
               <th scope="col">状态</th>
+              {onEdit ? <th scope="col">操作</th> : null}
             </tr>
           </thead>
           <tbody>
             {view.items.map((item) => (
-              <tr key={item.equipId}>
+              <tr key={String(item.primaryKey)}>
                 <td>{item.equipId}</td>
                 <td>{item.remark || "-"}</td>
                 <td>{item.part || "-"}</td>
@@ -125,6 +135,18 @@ export function EquipListPage({ pageSize = 20, rows }: EquipListPageProps) {
                 </td>
                 <td>{item.level || "-"}</td>
                 <td>{item.status || "-"}</td>
+                {onEdit ? (
+                  <td>
+                    <button
+                      aria-label={`编辑 ${item.equipId}`}
+                      className="secondary-button"
+                      onClick={() => onEdit(item.primaryKey)}
+                      type="button"
+                    >
+                      编辑
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>

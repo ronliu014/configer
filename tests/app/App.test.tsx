@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import App from "../../src/app/App";
@@ -62,4 +62,83 @@ describe("App shell", () => {
     expect(screen.getByRole("cell", { name: "战士长剑" })).toBeInTheDocument();
     expect(screen.queryByText("等待选择配置根目录")).not.toBeInTheDocument();
   });
+
+  it("adds an equip row from the loaded equip list", () => {
+    render(<App session={{ isLoaded: true, equipRows: [] }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "新增" }));
+
+    expect(screen.getByRole("heading", { name: "新增装备" })).toBeInTheDocument();
+
+    fillBaseDimensions();
+    fireEvent.change(screen.getByLabelText("备注"), { target: { value: "战士长剑" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+
+    expect(screen.getByRole("heading", { name: "装备列表" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "3011011001" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "战士长剑" })).toBeInTheDocument();
+  });
+
+  it("edits an equip row from the list without adding a duplicate", () => {
+    render(<App session={{ isLoaded: true, equipRows: [equipRow(3011011001, "旧备注")] }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "编辑 3011011001" }));
+    fireEvent.change(screen.getByLabelText("备注"), { target: { value: "新备注" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+
+    expect(screen.getByRole("heading", { name: "装备列表" })).toBeInTheDocument();
+    expect(screen.getAllByRole("cell", { name: "3011011001" })).toHaveLength(1);
+    expect(screen.queryByRole("cell", { name: "旧备注" })).not.toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "新备注" })).toBeInTheDocument();
+  });
+
+  it("does not remove an equip row until delete is confirmed", () => {
+    render(<App session={{ isLoaded: true, equipRows: [equipRow(3011011001, "待删除")] }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "编辑 3011011001" }));
+    fireEvent.click(screen.getByRole("button", { name: "删除" }));
+    fireEvent.click(screen.getByRole("button", { name: "取消" }));
+
+    expect(screen.getByRole("cell", { name: "3011011001" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "待删除" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "编辑 3011011001" }));
+    fireEvent.click(screen.getByRole("button", { name: "删除" }));
+    fireEvent.click(screen.getByRole("button", { name: "确认删除" }));
+
+    expect(screen.getByRole("heading", { name: "装备列表" })).toBeInTheDocument();
+    expect(screen.queryByRole("cell", { name: "3011011001" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("cell", { name: "待删除" })).not.toBeInTheDocument();
+  });
 });
+
+function fillBaseDimensions(): void {
+  fireEvent.change(screen.getByLabelText("部位"), { target: { value: "1" } });
+  fireEvent.change(screen.getByLabelText("职业"), { target: { value: "1" } });
+  fireEvent.change(screen.getByLabelText("转数"), { target: { value: "0" } });
+  fireEvent.change(screen.getByLabelText("分支"), { target: { value: "1" } });
+  fireEvent.change(screen.getByLabelText("品质"), { target: { value: "1" } });
+  fireEvent.change(screen.getByLabelText("等级"), { target: { value: "1" } });
+  fireEvent.change(screen.getByLabelText("第几套"), { target: { value: "1" } });
+}
+
+function equipRow(primaryKey: number, remark: string) {
+  return {
+    primaryKey,
+    sourceRow: 5,
+    sourcePath: "equip/equip.xlsx",
+    sheetName: "equip",
+    values: {
+      equipId: primaryKey,
+      remark,
+      part: 1,
+      job: 1,
+      turn: 0,
+      branch: 1,
+      quality: 1,
+      level: 1,
+      seriesNo: 1,
+      status: "normal"
+    }
+  };
+}

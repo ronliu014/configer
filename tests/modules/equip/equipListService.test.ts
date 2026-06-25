@@ -32,7 +32,8 @@ describe("equipListService", () => {
       turn: "1",
       quality: "rare",
       level: "20",
-      status: "normal"
+      status: "normal",
+      primaryKey: "2001001"
     });
   });
 
