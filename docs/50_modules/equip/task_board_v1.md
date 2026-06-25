@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 1：Excel 输出契约技术验证 |
+| 当前阶段 | 阶段 2：核心类型与 4 行表头解析 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `5043b37 Scaffold local web app` |
-| 下一步 | 验证 SheetJS 是否满足 source 只读、target 镜像输出、4 行表头和 generated 静态值输出契约 |
+| 最近完成阶段提交 | `23fbd79 Verify Excel target output contract` |
+| 下一步 | 实现 4 行表头协议解析，记录 `srcCol` / `srcName` 与结构化错误 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -39,7 +39,7 @@
 | 阶段 | 名称 | 状态 | 目标提交 | 验证证据 | 备注 |
 |---|---|---|---|---|---|
 | 0 | 脚手架与开发命令 | `Done` | `5043b37 Scaffold local web app` | `npm test`、`npm run build`、`npm run dev -- --host 127.0.0.1 --port 5173 --clearScreen false` | 已建立 Vite + React + TypeScript、Vitest、基础目录 |
-| 1 | Excel 输出契约技术验证 | `Not Started` | `Verify Excel target output contract` | 未执行 | 必须验证 source 只读、target 镜像路径、4 行表头、generated 静态值；失败则先调整技术方案 |
+| 1 | Excel 输出契约技术验证 | `Done` | `23fbd79 Verify Excel target output contract` | `npm test -- tests/core/excel/targetWriter.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | SheetJS 能满足基础输出契约；`xlsx` 存在 no fix available high severity audit 风险 |
 | 2 | 核心类型与 4 行表头解析 | `Not Started` | `Add Excel header parser` | 未执行 | 解析 4 行表头，记录 `srcCol` / `srcName` |
 | 3 | schema registry 与模块注册 | `Not Started` | `Add schema and module registry` | 未执行 | 注册 `equip`、`item`、`language`，关联表只读 |
 | 4 | table store、baseline 与索引 | `Not Started` | `Add table store and baseline` | 未执行 | baseline 不得被编辑污染 |
@@ -167,6 +167,37 @@
   - 尚未验证 SheetJS 是否满足 target 输出契约。
 - 下一步：
   - 阶段 1：Excel 输出契约技术验证。
+
+### 阶段 1：Excel 输出契约技术验证
+
+- 状态：Done
+- 提交：`23fbd79 Verify Excel target output contract`
+- 时间：2026-06-25 16:47
+- 变更范围：
+  - `package.json`
+  - `package-lock.json`
+  - `src/core/excel/targetWriter.ts`
+  - `tests/core/excel/targetWriter.test.ts`
+  - `tests/fixtures/workbookFixture.ts`
+- 验证：
+  - `npm test -- tests/core/excel/targetWriter.test.ts`：通过，2 个 target 输出契约测试通过。
+  - `npm test`：通过，2 个测试文件、3 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，`xlsx` 存在 1 个 high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 增加 SheetJS `xlsx` 依赖并完成最小 workbook fixture。
+  - 验证 target 输出路径可按 source 相对路径镜像生成。
+  - 验证 4 行表头、sheet 名称、字段顺序、导出标记和类型行可保留。
+  - 验证 `manual` 字段和 `generated` 字段可写为静态值。
+  - 验证原公式列不会作为 target 输出机制保留；未更新公式单元格会剥离公式并保留静态缓存值。
+  - 验证 `sourceBytes` 需复制后再传给 SheetJS 读取，否则读取过程会改变调用方持有的 `Uint8Array`。
+- 遗留风险：
+  - `xlsx@0.18.5` 存在 high severity `Prototype Pollution` 与 `ReDoS` advisory，且 npm audit 报告 no fix available；后续如处理不可信 Excel 或安全边界提升，必须评估替换 Excel 库或隔离解析环境。
+  - 当前 `targetWriter` 只是阶段 1 技术验证最小实现，尚未接入 schema、diff、备份、changelog、真实 File System Access API 或 sourceRoot / targetRoot 包含关系校验。
+- 下一步：
+  - 阶段 2：核心类型与 4 行表头解析。
 
 ## 恢复工作指引
 
