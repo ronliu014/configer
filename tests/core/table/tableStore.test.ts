@@ -33,6 +33,17 @@ describe("createTableStore", () => {
     expect(store.getBaseline().equip.rows[0].values.name).toBe("old");
   });
 
+  it("returns baseline snapshots that cannot mutate the stored baseline", () => {
+    const store = createTableStore([
+      createEquipTable([createEquipRow(1001, { equipId: 1001, name: "old" })])
+    ]);
+
+    const baseline = store.getBaseline();
+    baseline.equip.rows[0].values.name = "mutated";
+
+    expect(store.getBaseline().equip.rows[0].values.name).toBe("old");
+  });
+
   it("finds rows by table name and primary key", () => {
     const row = createEquipRow(1001, { equipId: 1001, name: "sword" });
     const store = createTableStore([createEquipTable([row])]);

@@ -55,7 +55,7 @@ export function createTableStore(tables: TableData[]): TableStore {
       return currentTables.get(tableName);
     },
     getBaseline() {
-      return baseline;
+      return cloneBaselineSnapshot(baseline);
     },
     findRow(tableName, primaryKey) {
       return indexes.get(tableName)?.rowsByPrimaryKey.get(primaryKey);
@@ -135,6 +135,12 @@ function cloneTableData(table: TableData): TableData {
     ...table,
     rows: table.rows.map(cloneTableRow)
   };
+}
+
+function cloneBaselineSnapshot(snapshot: BaselineSnapshot): BaselineSnapshot {
+  return Object.fromEntries(
+    Object.entries(snapshot).map(([tableName, table]) => [tableName, cloneTableData(table)])
+  );
 }
 
 function cloneTableRow(row: TableRow): TableRow {
