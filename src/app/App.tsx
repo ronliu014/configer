@@ -1,9 +1,12 @@
 import { useState } from "react";
 
 import { moduleGroups } from "./moduleRegistry";
+import type { AppModule } from "./moduleRegistry";
 import { initialSessionState, type SessionState } from "./sessionState";
 import { EquipEditPage } from "../modules/equip/pages/EquipEditPage";
 import { EquipListPage } from "../modules/equip/pages/EquipListPage";
+import { ItemPage } from "../modules/item/pages/ItemPage";
+import { LanguagePage } from "../modules/language/pages/LanguagePage";
 import {
   addEquipRow,
   confirmDeleteEquipRow,
@@ -11,41 +14,79 @@ import {
   type EquipEditInput,
   updateEquipRow
 } from "../modules/equip/services/equipEditService";
+import { createEquipGeneratedFieldsPreview } from "../modules/equip/services/equipEncodeRules";
 import { HeaderBar } from "../shared/components/HeaderBar";
 import { Sidebar } from "../shared/components/Sidebar";
 import { createTableStore } from "../core/table/tableStore";
-import type { TableRow } from "../core/table/tableTypes";
+import type { TableCellValue, TablePrimaryKey, TableRow } from "../core/table/tableTypes";
 
 interface AppProps {
   session?: SessionState;
 }
 
 export default function App({ session = initialSessionState }: AppProps) {
-  const activeModuleId = "equip";
+  const [activeModuleId, setActiveModuleId] = useState<AppModule["id"]>("equip");
   const [view, setView] = useState<"list" | "create" | "edit">("list");
   const [equipRows, setEquipRows] = useState<TableRow[]>(session.equipRows ?? []);
+  const [itemRows, setItemRows] = useState<TableRow[]>(session.itemRows ?? []);
+  const [languageRows, setLanguageRows] = useState<TableRow[]>(session.languageRows ?? []);
   const [editingEquipId, setEditingEquipId] = useState<TableRow["primaryKey"] | undefined>();
   const editingRow = equipRows.find((row) => row.primaryKey === editingEquipId);
+  const selectedEquipRow = getSelectedEquipRow(equipRows, editingEquipId);
+  const selectedEquipId = selectedEquipRow?.primaryKey ?? "";
+  const selectedNameKey = cellToText(selectedEquipRow?.values.nameKey) || `EquipName_${selectedEquipId}`;
+  const selectedDescKey = cellToText(selectedEquipRow?.values.descKey) || `EquipDes_${selectedEquipId}`;
+  const selectedQuality = cellToText(selectedEquipRow?.values.quality);
+  const languageTexts = createLanguageTextMap(languageRows);
 
   return (
     <main className="app-shell">
-      <Sidebar activeModuleId={activeModuleId} groups={moduleGroups} isLoaded={session.isLoaded} />
+      <Sidebar
+        activeModuleId={activeModuleId}
+        groups={moduleGroups}
+        isLoaded={session.isLoaded}
+        onSelectModule={(moduleId) => {
+          setActiveModuleId(moduleId);
+          setView("list");
+        }}
+      />
 
       <section className="workspace" aria-label="工作区">
         <HeaderBar isLoaded={session.isLoaded} subtitle="equip v1.0" title="装备配置" />
 
         {session.isLoaded ? (
-          view === "create" ? (
+          activeModuleId === "item" ? (
+            <ItemPage
+              equipId={selectedEquipId}
+              itemRows={itemRows}
+              nameKey={selectedNameKey}
+              onRowsChange={setItemRows}
+              quality={selectedQuality}
+            />
+          ) : activeModuleId === "language" ? (
+            <LanguagePage
+              languageRows={languageRows}
+              onRowsChange={setLanguageRows}
+              title="装备文案"
+              watchedKeys={[selectedNameKey, selectedDescKey]}
+            />
+          ) : view === "create" ? (
             <EquipEditPage
+              languageTexts={languageTexts}
               mode="create"
               onCancel={() => setView("list")}
               onSave={(input) => {
-                setEquipRows((currentRows) => addEquipRowToRows(currentRows, input));
+                setEquipRows((currentRows) => {
+                  const nextRows = addEquipRowToRows(currentRows, input);
+                  setEditingEquipId(nextRows.at(-1)?.primaryKey);
+                  return nextRows;
+                });
                 setView("list");
               }}
             />
           ) : view === "edit" && editingRow ? (
             <EquipEditPage
+              languageTexts={languageTexts}
               mode="edit"
               onCancel={() => {
                 setEditingEquipId(undefined);
@@ -57,8 +98,12 @@ export default function App({ session = initialSessionState }: AppProps) {
                 setView("list");
               }}
               onSave={(input) => {
-                setEquipRows((currentRows) => updateEquipRowInRows(currentRows, editingRow.primaryKey, input));
-                setEditingEquipId(undefined);
+                setEquipRows((currentRows) => {
+                  const nextRows = updateEquipRowInRows(currentRows, editingRow.primaryKey, input);
+                  const nextRow = findRowByGeneratedInput(nextRows, input);
+                  setEditingEquipId(nextRow?.primaryKey);
+                  return nextRows;
+                });
                 setView("list");
               }}
               row={editingRow}
@@ -79,6 +124,25 @@ export default function App({ session = initialSessionState }: AppProps) {
       </section>
     </main>
   );
+}
+
+function getSelectedEquipRow(
+  rows: TableRow[],
+  selectedPrimaryKey: TablePrimaryKey | undefined
+): TableRow | undefined {
+  if (selectedPrimaryKey !== undefined) {
+    const selectedRow = rows.find((row) => row.primaryKey === selectedPrimaryKey);
+    if (selectedRow) {
+      return selectedRow;
+    }
+  }
+
+  return rows[0];
+}
+
+function findRowByGeneratedInput(rows: TableRow[], input: EquipEditInput): TableRow | undefined {
+  const generatedFields = createEquipGeneratedFieldsPreview(input);
+  return rows.find((row) => String(row.values.equipId ?? row.primaryKey) === String(generatedFields.equipId));
 }
 
 function addEquipRowToRows(rows: TableRow[], input: EquipEditInput): TableRow[] {
@@ -115,6 +179,20 @@ function createEquipStore(rows: TableRow[]) {
       rows
     }
   ]);
+}
+
+function cellToText(value: TableCellValue | undefined): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value);
+}
+
+function createLanguageTextMap(rows: TableRow[]): Record<string, string> {
+  return Object.fromEntries(
+    rows.map((row) => [String(row.values.key ?? row.primaryKey), cellToText(row.values.zhs)])
+  );
 }
 
 function UnloadedWorkspace() {

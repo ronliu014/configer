@@ -411,8 +411,46 @@ select {
 
 .form-actions {
   display: flex;
+  gap: 10px;
   justify-content: flex-end;
   margin-top: 18px;
+}
+
+.maintenance-grid {
+  display: grid;
+  grid-template-columns: 320px minmax(180px, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.language-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.language-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1.4fr);
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #d8dee6;
+  border-radius: 6px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.language-row strong {
+  display: block;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.language-status {
+  color: #5b6b7d;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 @media (max-width: 760px) {
@@ -453,6 +491,11 @@ select {
 
   .edit-form-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .maintenance-grid,
+  .language-row {
+    grid-template-columns: 1fr;
   }
 
   .page-heading {

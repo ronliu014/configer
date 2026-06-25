@@ -6,6 +6,7 @@ import type { EquipEncodeDimensions } from "../services/equipEncodeRules";
 import type { EquipEditInput } from "../services/equipEditService";
 
 interface EquipEditPageProps {
+  languageTexts?: Record<string, string>;
   mode: "create" | "edit";
   onCancel?: () => void;
   onDeleteConfirm?: () => void;
@@ -30,7 +31,14 @@ const emptyFormState: EquipEditFormState = {
   icon: ""
 };
 
-export function EquipEditPage({ mode, onCancel, onDeleteConfirm, onSave, row }: EquipEditPageProps) {
+export function EquipEditPage({
+  languageTexts = {},
+  mode,
+  onCancel,
+  onDeleteConfirm,
+  onSave,
+  row
+}: EquipEditPageProps) {
   const [formState, setFormState] = useState<EquipEditFormState>(() => createInitialFormState(row));
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
   const preview = createPreview(formState);
@@ -75,9 +83,13 @@ export function EquipEditPage({ mode, onCancel, onDeleteConfirm, onSave, row }: 
               <dt>item ID</dt>
               <dd>{preview.values.itemId}</dd>
               <dt>Name Key</dt>
-              <dd>{preview.values.nameKey}</dd>
+              <dd>
+                <PreviewLanguageValue languageTexts={languageTexts} languageKey={preview.values.nameKey} />
+              </dd>
               <dt>Desc Key</dt>
-              <dd>{preview.values.descKey}</dd>
+              <dd>
+                <PreviewLanguageValue languageTexts={languageTexts} languageKey={preview.values.descKey} />
+              </dd>
             </dl>
           ) : (
             <p className="preview-error">{preview.reason}</p>
@@ -117,6 +129,22 @@ export function EquipEditPage({ mode, onCancel, onDeleteConfirm, onSave, row }: 
         </div>
       ) : null}
     </section>
+  );
+}
+
+interface PreviewLanguageValueProps {
+  languageKey: string;
+  languageTexts: Record<string, string>;
+}
+
+function PreviewLanguageValue({ languageKey, languageTexts }: PreviewLanguageValueProps) {
+  const text = languageTexts[languageKey];
+
+  return (
+    <span className="preview-language">
+      {text ? <strong>{text}</strong> : <span className="language-status">未配置</span>}
+      <span>{languageKey}</span>
+    </span>
   );
 }
 

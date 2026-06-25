@@ -110,6 +110,41 @@ describe("App shell", () => {
     expect(screen.queryByRole("cell", { name: "3011011001" })).not.toBeInTheDocument();
     expect(screen.queryByRole("cell", { name: "待删除" })).not.toBeInTheDocument();
   });
+
+  it("opens item maintenance for the selected equip row and saves item pair", () => {
+    render(<App session={{ isLoaded: true, equipRows: [equipRow(3011011001, "战士长剑")] }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "编辑 3011011001" }));
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "item" }));
+
+    expect(screen.getByRole("heading", { name: "item 维护" })).toBeInTheDocument();
+    expect(screen.getByText("未配置 item")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "保存 item" }));
+
+    expect(screen.getByText("互指正常")).toBeInTheDocument();
+    expect(screen.getByText("83011011001")).toBeInTheDocument();
+  });
+
+  it("opens language maintenance for the selected equip row and saves Chinese text", () => {
+    render(<App session={{ isLoaded: true, equipRows: [equipRow(3011011001, "战士长剑")] }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "编辑 3011011001" }));
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "language" }));
+
+    expect(screen.getByRole("heading", { name: "装备文案" })).toBeInTheDocument();
+    expect(screen.getAllByText("未配置")).toHaveLength(2);
+
+    fireEvent.change(screen.getByLabelText("EquipName_3011011001 中文"), {
+      target: { value: "战士长剑" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "保存 language" }));
+
+    expect(screen.getByDisplayValue("战士长剑")).toBeInTheDocument();
+    expect(screen.getByText("已配置")).toBeInTheDocument();
+  });
 });
 
 function fillBaseDimensions(): void {

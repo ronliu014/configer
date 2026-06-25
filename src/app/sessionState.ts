@@ -8,6 +8,8 @@ import type { TableData, TableRow } from "../core/table/tableTypes";
 export interface SessionState {
   isLoaded: boolean;
   equipRows?: TableRow[];
+  itemRows?: TableRow[];
+  languageRows?: TableRow[];
 }
 
 export const initialSessionState: SessionState = {

@@ -4,9 +4,10 @@ interface SidebarProps {
   activeModuleId: AppModule["id"];
   groups: ModuleGroup[];
   isLoaded: boolean;
+  onSelectModule?: (moduleId: AppModule["id"]) => void;
 }
 
-export function Sidebar({ activeModuleId, groups, isLoaded }: SidebarProps) {
+export function Sidebar({ activeModuleId, groups, isLoaded, onSelectModule }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -28,6 +29,7 @@ export function Sidebar({ activeModuleId, groups, isLoaded }: SidebarProps) {
                     className={isActive ? "module-button is-active" : "module-button"}
                     disabled={!isLoaded}
                     key={module.id}
+                    onClick={() => onSelectModule?.(module.id)}
                     type="button"
                   >
                     {module.label}

@@ -44,6 +44,25 @@ describe("EquipEditPage", () => {
 
     expect(deleted).toBe(true);
   });
+
+  it("shows configured Chinese language text while keeping generated keys visible", () => {
+    render(
+      <EquipEditPage
+        languageTexts={{
+          EquipName_3011011001: "战士长剑",
+          EquipDes_3011011001: "最简单的长剑"
+        }}
+        mode="create"
+      />
+    );
+
+    fillBaseDimensions();
+
+    expect(screen.getByText("战士长剑")).toBeInTheDocument();
+    expect(screen.getByText("最简单的长剑")).toBeInTheDocument();
+    expect(screen.getByText("EquipName_3011011001")).toBeInTheDocument();
+    expect(screen.getByText("EquipDes_3011011001")).toBeInTheDocument();
+  });
 });
 
 function fillBaseDimensions(): void {
