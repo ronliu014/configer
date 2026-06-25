@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 4：table store、baseline 与索引 |
+| 当前阶段 | 阶段 5：source / target 会话加载 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `f71519f Add schema and module registry` |
-| 下一步 | 实现 table store、baseline 深拷贝、主键索引与内存增删改 |
+| 最近完成阶段提交 | `0aecef0 Add table store and baseline` |
+| 下一步 | 实现 sourceRoot / targetRoot 选择后的加载会话、文件访问抽象和 workbook 读取 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -42,7 +42,7 @@
 | 1 | Excel 输出契约技术验证 | `Done` | `23fbd79 Verify Excel target output contract` | `npm test -- tests/core/excel/targetWriter.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | SheetJS 能满足基础输出契约；`xlsx` 存在 no fix available high severity audit 风险 |
 | 2 | 核心类型与 4 行表头解析 | `Done` | `348fe47 Add Excel header parser` | `npm test -- tests/core/excel/headerProtocol.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已解析 4 行表头，记录 `srcCol` / `srcName` 与结构化错误 |
 | 3 | schema registry 与模块注册 | `Done` | `f71519f Add schema and module registry` | `npm test -- tests/core/schema/schemaRegistry.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已注册 `equip`、`item`、`language`，9 个装备关联表只读 |
-| 4 | table store、baseline 与索引 | `Not Started` | `Add table store and baseline` | 未执行 | baseline 不得被编辑污染 |
+| 4 | table store、baseline 与索引 | `Done` | `0aecef0 Add table store and baseline` | `npm test -- tests/core/table/tableStore.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现内存表、baseline 深拷贝、主键索引和增删改；`xlsx` audit 风险仍存在 |
 | 5 | source / target 会话加载 | `Not Started` | `Add local table loading session` | 未执行 | 不硬编码仓库内 `source/` 路径 |
 | 6 | equip / item / language 最小 schema | `Not Started` | `Add v1 equip schemas` | 未执行 | 字段使用稳定逻辑 key |
 | 7 | 配置中心外壳与导航 | `Not Started` | `Add configuration center shell` | 未执行 | 参考产品样例页面，不复制 mock 逻辑 |
@@ -262,6 +262,36 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 4：table store、baseline 与索引。
+
+### 阶段 4：table store、baseline 与索引
+
+- 状态：Done
+- 提交：`0aecef0 Add table store and baseline`
+- 时间：2026-06-25 17:15
+- 变更范围：
+  - `src/core/table/tableTypes.ts`
+  - `src/core/table/tableStore.ts`
+  - `tests/core/table/tableStore.test.ts`
+- 验证：
+  - `npm test -- tests/core/table/tableStore.test.ts`：通过，1 个测试文件、5 个 table store 行为测试通过。
+  - `npm test`：通过，5 个测试文件、18 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 定义了 `TableRow`、`TableData`、`TableIndex`、`BaselineSnapshot`、`TablePrimaryKey` 和基础单元格值类型。
+  - 实现 `createTableStore(tables)`，初始化时为当前数据和 baseline 分别克隆表数据。
+  - 支持按表名和业务主键查询当前行。
+  - 新增、修改、删除内存行后同步维护主键索引。
+  - 初始化和新增行遇到重复主键时抛出包含 `tableName`、`primaryKey` 和 `reason` 的 `TableStoreError`。
+  - 删除缺失行返回 `false`，不修改当前数据或 baseline。
+- 遗留风险：
+  - 当前阶段只实现通用内存表能力，尚未接入 workbookReader、sourceRoot / targetRoot 文件访问、diff、输出备份或 UI。
+  - 当前 API 不支持修改业务主键；后续编辑流程如允许变更主键，需要显式设计索引迁移和冲突处理。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 5：source / target 会话加载。
 
 ## 恢复工作指引
 
