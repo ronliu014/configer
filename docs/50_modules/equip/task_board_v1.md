@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 7：配置中心外壳与导航 |
+| 当前阶段 | 阶段 8：装备列表 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `ea026d1 Add v1 equip schemas` |
-| 下一步 | 实现配置中心外壳与导航，接入加载状态展示 |
+| 最近完成阶段提交 | `24b1c0e Add configuration center shell` |
+| 下一步 | 实现装备列表、搜索、筛选和分页 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -45,7 +45,7 @@
 | 4 | table store、baseline 与索引 | `Done` | `ac4aee3 Harden table baseline snapshots` | `npm test -- tests/core/table/tableStore.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现内存表、baseline 防御性快照、主键索引和增删改；`xlsx` audit 风险仍存在 |
 | 5 | source / target 会话加载 | `Done` | `47c2784 Add local table loading session` | `npm test -- tests/core/file/fileAccess.test.ts tests/core/excel/workbookReader.test.ts tests/app/sessionState.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现文件访问抽象、workbook 读取、加载结果和 baseline 建立；`xlsx` audit 风险仍存在 |
 | 6 | equip / item / language 最小 schema | `Done` | `ea026d1 Add v1 equip schemas` | `npm test -- tests/modules/equip/equipSchema.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已声明最小 schema、字段来源、target 静态输出策略和 equip 关系；`Remark*` 源列仍待真实源表确认 |
-| 7 | 配置中心外壳与导航 | `Not Started` | `Add configuration center shell` | 未执行 | 参考产品样例页面，不复制 mock 逻辑 |
+| 7 | 配置中心外壳与导航 | `Done` | `24b1c0e Add configuration center shell` | `npm test -- tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现配置中心外壳、导航分组、顶部加载状态和已加载后进入装备列表外壳；`xlsx` audit 风险仍存在 |
 | 8 | 装备列表 | `Not Started` | `Add equip list page` | 未执行 | 搜索、筛选、分页，大表查找用 `Map` / `Set` |
 | 9 | 装备新增、编辑、删除 | `Not Started` | `Add equip edit workflow` | 未执行 | 新增撞 ID 拦截，编辑更新原行 |
 | 10 | item 与 language 维护 | `Not Started` | `Add item and language editing` | 未执行 | 支持配套 item 和文案编辑 |
@@ -361,6 +361,36 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 7：配置中心外壳与导航。
+
+### 阶段 7：配置中心外壳与导航
+
+- 状态：Done
+- 提交：`24b1c0e Add configuration center shell`
+- 时间：2026-06-25 18:03
+- 变更范围：
+  - `src/app/App.tsx`
+  - `src/shared/components/Sidebar.tsx`
+  - `src/shared/components/HeaderBar.tsx`
+  - `src/shared/styles/app.css`
+  - `tests/app/App.test.tsx`
+- 验证：
+  - `npm test -- tests/app/App.test.tsx`：通过，2 个 App shell 行为测试通过；实现前已确认测试因缺少 Phase 7 行为失败。
+  - `npm test`：通过，9 个测试文件、37 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误；Git 仅提示工作区文件下次接触时 LF 将按本机设置替换为 CRLF。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 将配置中心侧栏拆分为 `Sidebar`，保持业务配置和公共配置分组。
+  - 将顶部标题和加载状态拆分为 `HeaderBar`。
+  - 未加载 sourceRoot / targetRoot 时禁用模块入口，不显示空装备业务列表。
+  - 已加载后默认选中装备模块并进入装备列表外壳，但不实现 Phase 8 的搜索、筛选、分页或真实列表数据。
+  - 页面未读取仓库内 `source/` 固定路径，也未复制 demo mock 逻辑。
+- 遗留风险：
+  - 当前装备列表只是 Phase 7 外壳，真实列表数据、筛选、分页和大表索引查找留到阶段 8。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 8：装备列表。
 
 ## 恢复工作指引
 
