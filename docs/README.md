@@ -23,7 +23,7 @@ docs/
 2. 了解策划如何使用工具时，读 [产品设计](10_product/product_design.md)、[策划操作流程](10_product/workflow.md) 和 [产品需求清单](10_product/requirements.md)。
 3. 进入技术设计前，读 [项目目录设计](20_architecture/project_directory_design.md)、[技术方案](20_architecture/technical_design.md)、[模块架构](20_architecture/module_architecture.md) 和 [数据生命周期](20_architecture/data_lifecycle.md)。
 4. 写任何新文档、代码或测试前，读 [文档规范](30_development/documentation_standard.md)、[代码规范](30_development/coding_standard.md)、[测试规范](30_development/testing_standard.md) 和 [交付检查清单](30_development/delivery_checklist.md)。
-5. 做装备 MVP 前读 [阶段性总结 2026-06-25](00_project/stage_summary_2026_06_25.md)、[equip 工具模块入口](50_modules/equip/README.md) 和 [equip v1.0 MVP 实现计划](50_modules/equip/implementation_plan_v1.md)，再进入 [equip 配置说明](40_game_config/equip/README.md) 的详细资料。
+5. 做装备 MVP 前读 [阶段性总结 2026-06-25](00_project/stage_summary_2026_06_25.md)、[equip 工具模块入口](50_modules/equip/README.md)、[equip v1.0 任务进度表](50_modules/equip/task_board_v1.md) 和 [equip v1.0 MVP 实现计划](50_modules/equip/implementation_plan_v1.md)，再进入 [equip 配置说明](40_game_config/equip/README.md) 的详细资料。
 6. 改 Excel 读写、对账、回写前必须读 `docs/40_game_config/equip/12_装备配置工具设计规范.md`、`docs/40_game_config/equip/15_工具开发实施指南.md` 与 [Excel 配表协议](90_reference/excel_table_protocol.md)。
 7. 处理源表路径、样例表或外部提交流程时，读 [源表样例清单](90_reference/source_tables.md) 和 [外部流程参考](90_reference/external_workflow.md)。
 
