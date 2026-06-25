@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 8：装备列表 |
+| 当前阶段 | 阶段 9：装备新增、编辑、删除 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `24b1c0e Add configuration center shell` |
-| 下一步 | 实现装备列表、搜索、筛选和分页 |
+| 最近完成阶段提交 | `22dbbc7 Add equip list page` |
+| 下一步 | 实现装备新增、编辑、删除和生成预览 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -46,7 +46,7 @@
 | 5 | source / target 会话加载 | `Done` | `47c2784 Add local table loading session` | `npm test -- tests/core/file/fileAccess.test.ts tests/core/excel/workbookReader.test.ts tests/app/sessionState.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现文件访问抽象、workbook 读取、加载结果和 baseline 建立；`xlsx` audit 风险仍存在 |
 | 6 | equip / item / language 最小 schema | `Done` | `ea026d1 Add v1 equip schemas` | `npm test -- tests/modules/equip/equipSchema.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已声明最小 schema、字段来源、target 静态输出策略和 equip 关系；`Remark*` 源列仍待真实源表确认 |
 | 7 | 配置中心外壳与导航 | `Done` | `24b1c0e Add configuration center shell` | `npm test -- tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现配置中心外壳、导航分组、顶部加载状态和已加载后进入装备列表外壳；`xlsx` audit 风险仍存在 |
-| 8 | 装备列表 | `Not Started` | `Add equip list page` | 未执行 | 搜索、筛选、分页，大表查找用 `Map` / `Set` |
+| 8 | 装备列表 | `Done` | `22dbbc7 Add equip list page` | `npm test -- tests/modules/equip/equipListService.test.ts`、`npm test -- tests/modules/equip/EquipListPage.test.tsx`、`npm test -- tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现装备列表展示、搜索、筛选、分页和品质标签；`xlsx` audit 风险仍存在 |
 | 9 | 装备新增、编辑、删除 | `Not Started` | `Add equip edit workflow` | 未执行 | 新增撞 ID 拦截，编辑更新原行 |
 | 10 | item 与 language 维护 | `Not Started` | `Add item and language editing` | 未执行 | 支持配套 item 和文案编辑 |
 | 11 | 只读关联抽屉与存在性校验 | `Not Started` | `Add read-only relation drawer` | 未执行 | 关联表只读，不补建 |
@@ -391,6 +391,45 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 8：装备列表。
+
+### 阶段 8：装备列表
+
+- 状态：Done
+- 提交：`22dbbc7 Add equip list page`
+- 时间：2026-06-25 18:15
+- 变更范围：
+  - `src/app/App.tsx`
+  - `src/app/sessionState.ts`
+  - `src/modules/equip/pages/EquipListPage.tsx`
+  - `src/modules/equip/services/equipListService.ts`
+  - `src/modules/equip/components/EquipQualityTag.tsx`
+  - `src/shared/styles/app.css`
+  - `tests/app/App.test.tsx`
+  - `tests/modules/equip/EquipListPage.test.tsx`
+  - `tests/modules/equip/equipListService.test.ts`
+- 验证：
+  - `npm test -- tests/modules/equip/equipListService.test.ts`：通过，4 个列表服务测试通过；实现前已确认缺少 service 时测试失败。
+  - `npm test -- tests/modules/equip/EquipListPage.test.tsx`：通过，2 个页面交互测试通过；实现前已确认缺少搜索/筛选/分页控件时测试失败。
+  - `npm test -- tests/app/App.test.tsx`：通过，2 个 App shell 集成测试通过。
+  - `npm test`：通过，11 个测试文件、43 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误；Git 仅提示工作区文件下次接触时 LF 将按本机设置替换为 CRLF。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 新增 `equipListService`，将装备内存行映射为列表项，并支持装备 ID / 备注搜索。
+  - 支持职业、品质、转数、部位筛选，搜索与筛选可组合。
+  - 支持分页、页码越界收敛和每页数量稳定。
+  - 新增 `EquipListPage`，展示装备 ID、备注、部位、职业、转数、品质、等级和状态。
+  - 新增 `EquipQualityTag`，用于列表品质展示。
+  - `App` 已在 loaded 状态接入装备列表页面；页面仍不读取仓库内 `source/` 固定路径。
+- 遗留风险：
+  - 页面当前从 `SessionState.equipRows` 接收测试/会话行；真实 UI 目录选择和从 `ConfigSession.tableStore` 派生行数据仍待后续阶段接入。
+  - 手填维度仍依赖 Phase 6 的逻辑字段 key，`Remark*` 与真实源列绑定风险仍未消除。
+  - 一次并行定向测试命令因工具沙箱 cwd 映射到临时目录而找不到 `tests/setup.ts`；随后从仓库根目录分别重跑定向测试均通过。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 9：装备新增、编辑、删除。
 
 ## 恢复工作指引
 
