@@ -14,3 +14,16 @@
 
 - `docs/40_game_config/equip/` 保存现有装备配置分析、字段规则、ER 关系、工具设计和实施指南。
 - `source/table/default_ios/` 保存真实样例配表，按 `equip/`、`item/`、`language/` 等领域分组。
+
+## 开发命令
+
+```powershell
+npm install
+npm run dev
+npm run build
+npm test
+```
+
+- `npm run dev` 启动本地 Vite 开发服务。
+- `npm run build` 执行 TypeScript 检查并生成静态产物。
+- `npm test` 运行 Vitest 测试。
