@@ -7,12 +7,9 @@
 ## 当前文档
 
 - [文档规范](documentation_standard.md)：文档分类、命名、模板、权威来源、变更规则。
-
-## 计划文档
-
-- `coding_standard.md`：代码组织、命名、模块边界、错误处理、格式化规则。
-- `testing_standard.md`：测试分层、命名、Excel 回写验证、回归测试要求。
-- `delivery_checklist.md`：开发完成前的检查清单，包括文档、测试、样例数据和风险说明。
+- [coding_standard.md](coding_standard.md)：代码组织、命名、模块边界、错误处理、格式化规则。
+- [testing_standard.md](testing_standard.md)：测试分层、命名、Excel 回写验证、回归测试要求。
+- [delivery_checklist.md](delivery_checklist.md)：开发完成前的检查清单，包括文档、测试、样例数据和风险说明。
 
 ## 编写原则
 

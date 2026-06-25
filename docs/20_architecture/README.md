@@ -7,12 +7,9 @@
 ## 当前文档
 
 - [项目目录设计](project_directory_design.md)：仓库目标结构、目录职责、模块隔离规则。
-
-## 计划文档
-
-- `technical_design.md`：技术方案总稿，描述前端形态、Excel 读写、状态管理、文件访问、部署方式。
-- `module_architecture.md`：模块架构，定义 `core`、`shared`、`modules`、`app` 的依赖关系。
-- `data_lifecycle.md`：数据生命周期，定义加载、基线快照、编辑、对账、备份、回写、changelog。
+- [technical_design.md](technical_design.md)：技术方案总稿，描述前端形态、Excel 读写、状态管理、文件访问、部署方式。
+- [module_architecture.md](module_architecture.md)：模块架构，定义 `core`、`shared`、`modules`、`app` 的依赖关系。
+- [data_lifecycle.md](data_lifecycle.md)：数据生命周期，定义加载、基线快照、编辑、对账、备份、回写、changelog。
 
 ## 编写原则
 
