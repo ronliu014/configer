@@ -1,55 +1,44 @@
 import { moduleGroups } from "./moduleRegistry";
-import { initialSessionState } from "./sessionState";
+import { initialSessionState, type SessionState } from "./sessionState";
+import { HeaderBar } from "../shared/components/HeaderBar";
+import { Sidebar } from "../shared/components/Sidebar";
 
-export default function App() {
-  const session = initialSessionState;
+interface AppProps {
+  session?: SessionState;
+}
+
+export default function App({ session = initialSessionState }: AppProps) {
+  const activeModuleId = "equip";
 
   return (
     <main className="app-shell">
-      <aside className="sidebar" aria-label="配置模块">
-        <div className="brand">
-          <h1>configer</h1>
-          <span>DD 配置中心</span>
-        </div>
-
-        <nav className="module-nav">
-          {moduleGroups.map((group) => (
-            <section className="module-group" key={group.label}>
-              <h2>{group.label}</h2>
-              <div className="module-list">
-                {group.modules.map((module) => (
-                  <button
-                    className="module-button"
-                    disabled={!session.isLoaded}
-                    key={module.id}
-                    type="button"
-                  >
-                    {module.label}
-                  </button>
-                ))}
-              </div>
-            </section>
-          ))}
-        </nav>
-      </aside>
+      <Sidebar activeModuleId={activeModuleId} groups={moduleGroups} isLoaded={session.isLoaded} />
 
       <section className="workspace" aria-label="工作区">
-        <header className="workspace-header">
-          <div>
-            <p className="eyebrow">阶段 0</p>
-            <h2>装备配置 MVP</h2>
-          </div>
-          <span className="load-state">未加载 sourceRoot / targetRoot</span>
-        </header>
+        <HeaderBar isLoaded={session.isLoaded} subtitle="equip v1.0" title="装备配置" />
 
-        <section className="empty-state">
-          <h2>等待选择配置根目录</h2>
-          <p>
-            当前脚手架仅建立本地 Web 工程、模块边界和开发命令。后续阶段将接入用户选择的
-            sourceRoot 与 targetRoot。
-          </p>
-        </section>
+        {session.isLoaded ? <EquipListShell /> : <UnloadedWorkspace />}
       </section>
     </main>
+  );
+}
+
+function UnloadedWorkspace() {
+  return (
+    <section className="empty-state">
+      <h2>等待选择配置根目录</h2>
+      <p>sourceRoot 与 targetRoot 选择完成后进入装备配置。</p>
+    </section>
+  );
+}
+
+function EquipListShell() {
+  return (
+    <section className="module-workspace" aria-label="装备配置">
+      <div className="page-heading">
+        <p className="eyebrow">业务配置</p>
+        <h2>装备列表</h2>
+      </div>
+    </section>
   );
 }
