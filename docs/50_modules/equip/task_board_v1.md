@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 3：schema registry 与模块注册 |
+| 当前阶段 | 阶段 4：table store、baseline 与索引 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `348fe47 Add Excel header parser` |
-| 下一步 | 实现 schema registry 与 `equip`、`item`、`language` 模块注册 |
+| 最近完成阶段提交 | `f71519f Add schema and module registry` |
+| 下一步 | 实现 table store、baseline 深拷贝、主键索引与内存增删改 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -41,7 +41,7 @@
 | 0 | 脚手架与开发命令 | `Done` | `5043b37 Scaffold local web app` | `npm test`、`npm run build`、`npm run dev -- --host 127.0.0.1 --port 5173 --clearScreen false` | 已建立 Vite + React + TypeScript、Vitest、基础目录 |
 | 1 | Excel 输出契约技术验证 | `Done` | `23fbd79 Verify Excel target output contract` | `npm test -- tests/core/excel/targetWriter.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | SheetJS 能满足基础输出契约；`xlsx` 存在 no fix available high severity audit 风险 |
 | 2 | 核心类型与 4 行表头解析 | `Done` | `348fe47 Add Excel header parser` | `npm test -- tests/core/excel/headerProtocol.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已解析 4 行表头，记录 `srcCol` / `srcName` 与结构化错误 |
-| 3 | schema registry 与模块注册 | `Not Started` | `Add schema and module registry` | 未执行 | 注册 `equip`、`item`、`language`，关联表只读 |
+| 3 | schema registry 与模块注册 | `Done` | `f71519f Add schema and module registry` | `npm test -- tests/core/schema/schemaRegistry.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已注册 `equip`、`item`、`language`，9 个装备关联表只读 |
 | 4 | table store、baseline 与索引 | `Not Started` | `Add table store and baseline` | 未执行 | baseline 不得被编辑污染 |
 | 5 | source / target 会话加载 | `Not Started` | `Add local table loading session` | 未执行 | 不硬编码仓库内 `source/` 路径 |
 | 6 | equip / item / language 最小 schema | `Not Started` | `Add v1 equip schemas` | 未执行 | 字段使用稳定逻辑 key |
@@ -227,6 +227,41 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 3：schema registry 与模块注册。
+
+### 阶段 3：schema registry 与模块注册
+
+- 状态：Done
+- 提交：`f71519f Add schema and module registry`
+- 时间：2026-06-25 17:06
+- 变更范围：
+  - `src/core/schema/schemaTypes.ts`
+  - `src/core/schema/schemaRegistry.ts`
+  - `src/app/moduleRegistry.ts`
+  - `src/modules/equip/index.ts`
+  - `src/modules/item/index.ts`
+  - `src/modules/language/index.ts`
+  - `tests/core/schema/schemaRegistry.test.ts`
+- 验证：
+  - `npm test -- tests/core/schema/schemaRegistry.test.ts`：通过，6 个 schema registry 与模块注册测试通过。
+  - `npm test`：通过，4 个测试文件、13 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 定义了 `FieldSchema`、`TableSchema`、`ConfigModule`、`DependencyTable`、`FieldRef` 和 `FieldControl`。
+  - 实现 `mergeTableSchema(rawColumns, explicitSchema)`，把 4 行表头元数据合并到显式 schema 字段。
+  - schema 合并后可通过稳定 `key` 使用字段，同时保留 `srcName`、`srcCol`、`srcLabel`、`flag` 和 `type` 等源信息。
+  - 显式 schema 引用缺失源列时抛出结构化定位信息。
+  - 重复 `srcName` 时保留第一个匹配源列，不覆盖为后续重复列。
+  - 注册 `equip`、`item`、`language` 模块。
+  - `equip` v1.0 `targetTables` 限定为 `equip`、`item`、`language`。
+  - 按 `docs/40_game_config/equip/01_source_tables.md` 注册 9 个装备只读依赖表，且不进入 target 输出集合。
+- 遗留风险：
+  - 当前阶段只建立 schema registry 和模块表边界，尚未实现真实字段 schema、table store、baseline、diff、备份或输出会话。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 4：table store、baseline 与索引。
 
 ## 恢复工作指引
 
