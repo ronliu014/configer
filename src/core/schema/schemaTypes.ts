@@ -23,6 +23,8 @@ export interface FieldRef {
   fieldKey: string;
 }
 
+export type FieldTargetPolicy = "static" | "ignore";
+
 export interface FieldSchema {
   key: string;
   srcName: string;
@@ -33,7 +35,33 @@ export interface FieldSchema {
   source: FieldSource;
   editable: boolean;
   control: FieldControl;
+  required?: boolean;
+  target?: FieldTargetPolicy;
   ref?: FieldRef;
+}
+
+export interface LogicalFieldSchema {
+  key: string;
+  srcName?: string;
+  srcLabel: string;
+  source: FieldSource;
+  editable: boolean;
+  control: FieldControl;
+  required: boolean;
+  target: FieldTargetPolicy;
+}
+
+export type RelationMissingLevel = "Error" | "Warning" | "Info";
+
+export interface TableRelation {
+  sourceTable: string;
+  sourceField: string;
+  targetTable: string;
+  targetField: string;
+  targetFieldKey: string;
+  relationType: "many-to-one";
+  missingLevel: RelationMissingLevel;
+  readonly: boolean;
 }
 
 export interface TableSchema {
