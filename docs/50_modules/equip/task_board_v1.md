@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 5：source / target 会话加载 |
+| 当前阶段 | 阶段 6：equip / item / language 最小 schema |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `ac4aee3 Harden table baseline snapshots` |
-| 下一步 | 实现 sourceRoot / targetRoot 选择后的加载会话、文件访问抽象和 workbook 读取 |
+| 最近完成阶段提交 | `47c2784 Add local table loading session` |
+| 下一步 | 依据装备规则文档实现 equip / item / language 最小字段 schema |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -43,7 +43,7 @@
 | 2 | 核心类型与 4 行表头解析 | `Done` | `348fe47 Add Excel header parser` | `npm test -- tests/core/excel/headerProtocol.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已解析 4 行表头，记录 `srcCol` / `srcName` 与结构化错误 |
 | 3 | schema registry 与模块注册 | `Done` | `f71519f Add schema and module registry` | `npm test -- tests/core/schema/schemaRegistry.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已注册 `equip`、`item`、`language`，9 个装备关联表只读 |
 | 4 | table store、baseline 与索引 | `Done` | `ac4aee3 Harden table baseline snapshots` | `npm test -- tests/core/table/tableStore.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现内存表、baseline 防御性快照、主键索引和增删改；`xlsx` audit 风险仍存在 |
-| 5 | source / target 会话加载 | `Not Started` | `Add local table loading session` | 未执行 | 不硬编码仓库内 `source/` 路径 |
+| 5 | source / target 会话加载 | `Done` | `47c2784 Add local table loading session` | `npm test -- tests/core/file/fileAccess.test.ts tests/core/excel/workbookReader.test.ts tests/app/sessionState.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现文件访问抽象、workbook 读取、加载结果和 baseline 建立；`xlsx` audit 风险仍存在 |
 | 6 | equip / item / language 最小 schema | `Not Started` | `Add v1 equip schemas` | 未执行 | 字段使用稳定逻辑 key |
 | 7 | 配置中心外壳与导航 | `Not Started` | `Add configuration center shell` | 未执行 | 参考产品样例页面，不复制 mock 逻辑 |
 | 8 | 装备列表 | `Not Started` | `Add equip list page` | 未执行 | 搜索、筛选、分页，大表查找用 `Map` / `Set` |
@@ -293,6 +293,41 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 5：source / target 会话加载。
+
+### 阶段 5：source / target 会话加载
+
+- 状态：Done
+- 提交：`47c2784 Add local table loading session`
+- 时间：2026-06-25 17:35
+- 变更范围：
+  - `src/core/file/fileAccess.ts`
+  - `src/core/excel/workbookReader.ts`
+  - `src/app/sessionState.ts`
+  - `tests/core/file/fileAccess.test.ts`
+  - `tests/core/excel/workbookReader.test.ts`
+  - `tests/app/sessionState.test.ts`
+- 验证：
+  - `npm test -- tests/core/file/fileAccess.test.ts tests/core/excel/workbookReader.test.ts tests/app/sessionState.test.ts`：通过，3 个测试文件、13 个 Phase 5 行为测试通过。
+  - `npm test`：通过，8 个测试文件、32 个测试通过。曾在并行验收命令中因工具沙箱 cwd 映射到临时目录而找不到 `E:/projects/my_app/configer/tests/setup.ts`；随后从仓库根目录单独重跑通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 实现 `FileAccessAdapter` 抽象，并提供内存测试实现和浏览器 File System Access API 句柄适配器。
+  - 实现 `validateRootPair()`，阻止 `sourceRoot` 与 `targetRoot` 相同或互相包含。
+  - 实现 `resolveTargetPath()`，按 source 相对路径镜像 target 相对路径。
+  - 实现 `readWorkbookTable()`，按 4 行表头协议读取 worksheet 为 `TableData`，保留 `sourcePath`、`sheetName`、业务主键和真实 Excel 源行号。
+  - 空行不会污染源行号；公式单元格读取缓存静态值，不把公式作为输出机制。
+  - 实现 `loadConfigSession()`，按模块声明从 `sourceRoot` 加载 target 表和只读依赖表，记录 loaded、missing、failed 三类结果，并用已加载表建立 `TableStore` baseline。
+  - 缺失表和表头/主键解析失败可在加载结果中定位到表名、source 相对路径和 sheet。
+  - 加载逻辑不读取仓库内 `source/` 固定路径，也不写入 `sourceRoot`。
+- 遗留风险：
+  - Phase 5 只建立加载会话基建，尚未接入真实 UI 目录选择、IndexedDB 句柄持久化、字段级 schema 合并、diff、备份或 target 输出。
+  - target 表请求当前按 `tableName/tableName.xlsx` 和同名 sheet 约定生成；Phase 6 需要用显式 schema 继续收敛 equip / item / language 字段与主键。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 6：equip / item / language 最小 schema。
 
 ## 恢复工作指引
 
