@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 9：装备新增、编辑、删除 |
+| 当前阶段 | 阶段 10：item 与 language 维护 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `22dbbc7 Add equip list page` |
-| 下一步 | 实现装备新增、编辑、删除和生成预览 |
+| 最近完成阶段提交 | `10e2823 Add equip edit workflow` |
+| 下一步 | 实现配套 item 和 language 编辑能力 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -47,7 +47,7 @@
 | 6 | equip / item / language 最小 schema | `Done` | `ea026d1 Add v1 equip schemas` | `npm test -- tests/modules/equip/equipSchema.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已声明最小 schema、字段来源、target 静态输出策略和 equip 关系；`Remark*` 源列仍待真实源表确认 |
 | 7 | 配置中心外壳与导航 | `Done` | `24b1c0e Add configuration center shell` | `npm test -- tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现配置中心外壳、导航分组、顶部加载状态和已加载后进入装备列表外壳；`xlsx` audit 风险仍存在 |
 | 8 | 装备列表 | `Done` | `22dbbc7 Add equip list page` | `npm test -- tests/modules/equip/equipListService.test.ts`、`npm test -- tests/modules/equip/EquipListPage.test.tsx`、`npm test -- tests/app/App.test.tsx`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现装备列表展示、搜索、筛选、分页和品质标签；`xlsx` audit 风险仍存在 |
-| 9 | 装备新增、编辑、删除 | `Not Started` | `Add equip edit workflow` | 未执行 | 新增撞 ID 拦截，编辑更新原行 |
+| 9 | 装备新增、编辑、删除 | `Done` | `10e2823 Add equip edit workflow` | `npm test -- tests/app/App.test.tsx`、`npm test -- tests/modules/equip/equipListService.test.ts tests/modules/equip/EquipListPage.test.tsx tests/modules/equip/EquipEditPage.test.tsx tests/modules/equip/equipEditService.test.ts tests/modules/equip/equipEncodeRules.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现生成预览、新增撞 ID 拦截、编辑更新原行和删除确认；`xlsx` audit 风险仍存在 |
 | 10 | item 与 language 维护 | `Not Started` | `Add item and language editing` | 未执行 | 支持配套 item 和文案编辑 |
 | 11 | 只读关联抽屉与存在性校验 | `Not Started` | `Add read-only relation drawer` | 未执行 | 关联表只读，不补建 |
 | 12 | diff、变更预览和 changelog | `Not Started` | `Add diff and changelog generation` | 未执行 | 预览和 changelog 使用同一份 diff |
@@ -430,6 +430,47 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 9：装备新增、编辑、删除。
+
+### 阶段 9：装备新增、编辑、删除
+
+- 状态：Done
+- 提交：`10e2823 Add equip edit workflow`
+- 时间：2026-06-25 18:38
+- 变更范围：
+  - `src/app/App.tsx`
+  - `src/modules/equip/pages/EquipEditPage.tsx`
+  - `src/modules/equip/pages/EquipListPage.tsx`
+  - `src/modules/equip/services/equipEditService.ts`
+  - `src/modules/equip/services/equipEncodeRules.ts`
+  - `src/modules/equip/services/equipListService.ts`
+  - `src/shared/styles/app.css`
+  - `tests/app/App.test.tsx`
+  - `tests/modules/equip/EquipEditPage.test.tsx`
+  - `tests/modules/equip/equipEditService.test.ts`
+  - `tests/modules/equip/equipEncodeRules.test.ts`
+  - `tests/modules/equip/equipListService.test.ts`
+- 验证：
+  - `npm test -- tests/app/App.test.tsx`：通过，5 个 App 行为测试通过；补充的编辑/删除集成测试曾先失败于缺少 `编辑 3011011001` 入口，随后实现后通过。
+  - `npm test -- tests/modules/equip/equipListService.test.ts tests/modules/equip/EquipListPage.test.tsx tests/modules/equip/EquipEditPage.test.tsx tests/modules/equip/equipEditService.test.ts tests/modules/equip/equipEncodeRules.test.ts`：通过，5 个测试文件、18 个 equip 定向测试通过。
+  - `npm test`：通过，14 个测试文件、58 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check` / `git diff --cached --check`：通过，无空白错误；Git 仅提示工作区文件下次接触时 LF 将按本机设置替换为 CRLF。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 实现 `EQUIP_ID` 生成预览，按 `3 + 部位(2位) + 职业 + 转数 + 分支 + 品质 + 真实等级(3位)` 生成装备 ID，并以 `seriesNo - 1` 表示同种类撞号偏移。
+  - 实现 v1.0 最小生成预览：`itemId = equipId`、`EquipName_${equipId}`、`EquipDes_${equipId}`。
+  - 新增装备会检查生成装备 ID 冲突，冲突时阻止内存新增。
+  - 编辑装备允许保存自身生成 ID；改到非冲突新 ID 时迁移原行，不新增重复行；改到其他已有 ID 时阻止。
+  - 新增 `EquipEditPage`，生成预览随手填维度变化；删除需要确认，确认前不触发删除。
+  - 装备列表增加新增和编辑入口；App 已接入内存级新增、编辑、取消和确认删除流程。
+- 遗留风险：
+  - `seriesNo` 当前按参考文档中的撞号偏移建模，仍需在真实源表 `Remark*` 手填列绑定明确后复核。
+  - Phase 9 的 `itemId = equipId` 只覆盖非绑定 item 的预览；绑定 item 对、item 互指和真实 item/language 维护留到 Phase 10。
+  - App 当前仍以 `SessionState.equipRows` 初始化本地内存行，尚未从真实目录加载后的 `ConfigSession.tableStore` 派生完整编辑会话。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 10：item 与 language 维护。
 
 ## 恢复工作指引
 
