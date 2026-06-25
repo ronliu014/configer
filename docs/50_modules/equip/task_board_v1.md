@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 6：equip / item / language 最小 schema |
+| 当前阶段 | 阶段 7：配置中心外壳与导航 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `47c2784 Add local table loading session` |
-| 下一步 | 依据装备规则文档实现 equip / item / language 最小字段 schema |
+| 最近完成阶段提交 | `ea026d1 Add v1 equip schemas` |
+| 下一步 | 实现配置中心外壳与导航，接入加载状态展示 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -44,7 +44,7 @@
 | 3 | schema registry 与模块注册 | `Done` | `f71519f Add schema and module registry` | `npm test -- tests/core/schema/schemaRegistry.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已注册 `equip`、`item`、`language`，9 个装备关联表只读 |
 | 4 | table store、baseline 与索引 | `Done` | `ac4aee3 Harden table baseline snapshots` | `npm test -- tests/core/table/tableStore.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现内存表、baseline 防御性快照、主键索引和增删改；`xlsx` audit 风险仍存在 |
 | 5 | source / target 会话加载 | `Done` | `47c2784 Add local table loading session` | `npm test -- tests/core/file/fileAccess.test.ts tests/core/excel/workbookReader.test.ts tests/app/sessionState.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已实现文件访问抽象、workbook 读取、加载结果和 baseline 建立；`xlsx` audit 风险仍存在 |
-| 6 | equip / item / language 最小 schema | `Not Started` | `Add v1 equip schemas` | 未执行 | 字段使用稳定逻辑 key |
+| 6 | equip / item / language 最小 schema | `Done` | `ea026d1 Add v1 equip schemas` | `npm test -- tests/modules/equip/equipSchema.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已声明最小 schema、字段来源、target 静态输出策略和 equip 关系；`Remark*` 源列仍待真实源表确认 |
 | 7 | 配置中心外壳与导航 | `Not Started` | `Add configuration center shell` | 未执行 | 参考产品样例页面，不复制 mock 逻辑 |
 | 8 | 装备列表 | `Not Started` | `Add equip list page` | 未执行 | 搜索、筛选、分页，大表查找用 `Map` / `Set` |
 | 9 | 装备新增、编辑、删除 | `Not Started` | `Add equip edit workflow` | 未执行 | 新增撞 ID 拦截，编辑更新原行 |
@@ -328,6 +328,39 @@
   - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
 - 下一步：
   - 阶段 6：equip / item / language 最小 schema。
+
+### 阶段 6：equip / item / language 最小 schema
+
+- 状态：Done
+- 提交：`ea026d1 Add v1 equip schemas`
+- 时间：2026-06-25 17:53
+- 变更范围：
+  - `src/core/schema/schemaTypes.ts`
+  - `src/modules/equip/schema/equipSchema.ts`
+  - `src/modules/equip/schema/equipRelations.ts`
+  - `src/modules/item/schema/itemSchema.ts`
+  - `src/modules/language/schema/languageSchema.ts`
+  - `tests/modules/equip/equipSchema.test.ts`
+- 验证：
+  - `npm test -- tests/modules/equip/equipSchema.test.ts`：通过，1 个测试文件、4 个 schema 行为测试通过。
+  - `npm test`：通过，9 个测试文件、36 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 为 `FieldSchema` 增加可选 `required` 与 `target` 输出策略，并新增 `LogicalFieldSchema`、`TableRelation` 等关系/逻辑字段类型。
+  - 声明 `equipSchema` 中已有明确 `srcName` 的 v1.0 字段，包括 `equipId`、文案 Key、item 关联和主要只读关联字段。
+  - `equip` 生成字段标记为 `generated`、不可编辑、`target: "static"`，符合 target 输出静态值约定。
+  - `equipManualDimensions` 声明 `part`、`job`、`turn`、`branch`、`quality`、`seriesNo`、`level`、`icon` 等手填维度为逻辑字段；因字段字典仍为 `Remark*`，暂不伪造 `srcName`。
+  - 声明 `equipRelations`，覆盖 `item`、`language`、职业限制组、属性库、随机词条库、套装、特效掉落、技能掉落等 v1.0 关系及缺失级别。
+  - 声明 `itemSchema` 和 `languageSchema` 最小目标输出字段；`language.Key` 与 `language.Zhs` 可编辑并静态输出。
+- 遗留风险：
+  - `Remark*` 手填维度尚未绑定真实 Excel 源列名和 `srcCol`；后续必须结合真实源表或阶段 8/9 页面字段映射继续收敛。
+  - 当前 schema 只声明字段和关系，不实现生成规则、引用校验、diff 或 target 输出过滤。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 7：配置中心外壳与导航。
 
 ## 恢复工作指引
 
