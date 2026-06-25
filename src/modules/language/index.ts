@@ -1,4 +1,8 @@
-export const languageModule = {
+import type { ConfigModule } from "../../core/schema/schemaTypes";
+
+export const languageModule: ConfigModule = {
   id: "language",
-  label: "language"
-} as const;
+  label: "language",
+  targetTables: ["language"],
+  dependencyTables: []
+};

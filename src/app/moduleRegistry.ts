@@ -1,3 +1,8 @@
+import { equipModule } from "../modules/equip";
+import { itemModule } from "../modules/item";
+import { languageModule } from "../modules/language";
+import type { ConfigModule } from "../core/schema/schemaTypes";
+
 export interface AppModule {
   id: "equip" | "item" | "language";
   label: string;
@@ -21,3 +26,5 @@ export const moduleGroups: ModuleGroup[] = [
     ]
   }
 ];
+
+export const configModules: ConfigModule[] = [equipModule, itemModule, languageModule];
