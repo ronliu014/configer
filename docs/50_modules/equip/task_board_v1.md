@@ -26,10 +26,10 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | 阶段 2：核心类型与 4 行表头解析 |
+| 当前阶段 | 阶段 3：schema registry 与模块注册 |
 | 当前状态 | `Not Started` |
-| 最近完成阶段提交 | `23fbd79 Verify Excel target output contract` |
-| 下一步 | 实现 4 行表头协议解析，记录 `srcCol` / `srcName` 与结构化错误 |
+| 最近完成阶段提交 | `348fe47 Add Excel header parser` |
+| 下一步 | 实现 schema registry 与 `equip`、`item`、`language` 模块注册 |
 | 当前阻塞 | 无 |
 | 注意事项 | 阶段 1 Excel 输出契约技术验证不得跳过 |
 | 最近规划调整 | sourceRoot 只读、targetRoot 镜像输出；旧 equip 分析资料移入 `docs/90_reference/equip_reference/` |
@@ -40,7 +40,7 @@
 |---|---|---|---|---|---|
 | 0 | 脚手架与开发命令 | `Done` | `5043b37 Scaffold local web app` | `npm test`、`npm run build`、`npm run dev -- --host 127.0.0.1 --port 5173 --clearScreen false` | 已建立 Vite + React + TypeScript、Vitest、基础目录 |
 | 1 | Excel 输出契约技术验证 | `Done` | `23fbd79 Verify Excel target output contract` | `npm test -- tests/core/excel/targetWriter.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | SheetJS 能满足基础输出契约；`xlsx` 存在 no fix available high severity audit 风险 |
-| 2 | 核心类型与 4 行表头解析 | `Not Started` | `Add Excel header parser` | 未执行 | 解析 4 行表头，记录 `srcCol` / `srcName` |
+| 2 | 核心类型与 4 行表头解析 | `Done` | `348fe47 Add Excel header parser` | `npm test -- tests/core/excel/headerProtocol.test.ts`、`npm test`、`npm run build`、`npm audit --omit=dev` | 已解析 4 行表头，记录 `srcCol` / `srcName` 与结构化错误 |
 | 3 | schema registry 与模块注册 | `Not Started` | `Add schema and module registry` | 未执行 | 注册 `equip`、`item`、`language`，关联表只读 |
 | 4 | table store、baseline 与索引 | `Not Started` | `Add table store and baseline` | 未执行 | baseline 不得被编辑污染 |
 | 5 | source / target 会话加载 | `Not Started` | `Add local table loading session` | 未执行 | 不硬编码仓库内 `source/` 路径 |
@@ -198,6 +198,35 @@
   - 当前 `targetWriter` 只是阶段 1 技术验证最小实现，尚未接入 schema、diff、备份、changelog、真实 File System Access API 或 sourceRoot / targetRoot 包含关系校验。
 - 下一步：
   - 阶段 2：核心类型与 4 行表头解析。
+
+### 阶段 2：核心类型与 4 行表头解析
+
+- 状态：Done
+- 提交：`348fe47 Add Excel header parser`
+- 时间：2026-06-25 16:54
+- 变更范围：
+  - `src/core/excel/headerProtocol.ts`
+  - `src/core/schema/schemaTypes.ts`
+  - `tests/core/excel/headerProtocol.test.ts`
+- 验证：
+  - `npm test -- tests/core/excel/headerProtocol.test.ts`：通过，4 个表头协议解析测试通过。
+  - `npm test`：通过，3 个测试文件、7 个测试通过。
+  - `npm run build`：通过，TypeScript 检查与 Vite production build 成功。
+  - `git diff --check`：通过，无空白错误。
+  - `git ls-files source`：无输出，`source/` 未被 Git 跟踪。
+  - `npm audit --omit=dev`：失败，仍为阶段 1 已记录的 `xlsx` high severity advisory，当前 npm registry 报告 no fix available。
+- 结果：
+  - 定义了 `RawColumnMeta` 和字段来源基础类型。
+  - 定义了 `HeaderProtocolResult` 和结构化 `ParseHeaderError`。
+  - 实现 `parseHeaderRows(rows, { sheetName })`，按 4 行表头解析 `srcLabel`、`flag`、`type`、`srcName` 并记录 `srcCol`。
+  - 少于 4 行表头时抛出包含 sheet、行、列、原因的结构化错误。
+  - 缺失第 4 行源字段名时抛出结构化错误。
+  - 重复 `srcName` 不覆盖列，保留为独立 `RawColumnMeta` 条目；未把 `Remark*` 当成稳定业务 key。
+- 遗留风险：
+  - 当前解析器只完成表头协议解析，不包含 schema 合并、字段可编辑性、引用关系、主键索引或 workbook 加载流程。
+  - `xlsx@0.18.5` audit high severity 风险仍存在，后续阶段继续按阶段 1 风险记录处理。
+- 下一步：
+  - 阶段 3：schema registry 与模块注册。
 
 ## 恢复工作指引
 
